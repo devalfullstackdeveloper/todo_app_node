@@ -1,0 +1,10 @@
+var mysql = require("mysql");
+
+var db = mysql.createConnection({
+    host: "localhost",
+    user: "root",
+    password: "zRwWLSg83FDB27SG",
+    database: "leavemanagement",
+    timezone: 'utc'
+  });
+module.exports = db;
