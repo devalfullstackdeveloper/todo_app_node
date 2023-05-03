@@ -6,7 +6,7 @@ const router = express.Router();
 
 
 
-router.get('/showLeads',educationController.showlead)
+router.post('/showLeads',educationController.showlead)
 //lead Add,Edit,Delete
 
 router.post('/leadAdd',educationController.leadAdd)
