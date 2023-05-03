@@ -7,8 +7,10 @@ const router = express.Router();
 
 
 router.get('/showLeads',educationController.showlead)
-//Designation Add,Edit,Delete
+//lead Add,Edit,Delete
+
 router.post('/leadAdd',educationController.leadAdd)
+router.post('/leadEdit/:id',educationController.leadEdit)
 router.get('/leadDelete/:id',educationController.leadDelete)
 
 module.exports = router;
