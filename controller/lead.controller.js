@@ -4,13 +4,12 @@ const commonService = require("../services/common.services");
 const showlead = async (req, res) => {
   try {
     let query;
-    let emp_code = req.params.emp_code;
+    let dataLength = 0;
     let filtertype = req.body.filtertype;
     let sortType = req.body.sortType;
     let sortBy = req.body.sortBy;
-    let tblName = "tbl_lead";
-    let parameters = "*"
-    let condition = `flag= 0 ORDER BY id desc`;
+    let pageNo = req.body.pageNo;
+    let pageLength = req.body.pageLength;
 
     let todayDate = new Date()
     let todayDate1 = todayDate.toISOString().split('T')[0]
@@ -44,42 +43,53 @@ const showlead = async (req, res) => {
     }
 
     if (sortBy == 'None') {
-      if(sortType=='asc'){
+      if (sortType == 'asc') {
         query = `${query} ORDER BY create_date ASC`;
       }
-      if(sortType=='desc'){       
+      if (sortType == 'desc') {
         query = `${query} ORDER BY create_date DESC`;
       }
     }
     else if (sortBy == 'name') {
-      if(sortType=='asc'){
+      if (sortType == 'asc') {
         query = `${query} ORDER BY first_name ASC`;
       }
-      if(sortType=='desc'){
+      if (sortType == 'desc') {
         query = `${query} ORDER BY first_name DESC`;
       }
     }
     else if (sortBy == 'create_date') {
-      if(sortType=='asc'){
+      if (sortType == 'asc') {
         query = `${query} ORDER BY create_date ASC`;
       }
-      if(sortType=='desc'){
+      if (sortType == 'desc') {
         query = `${query} ORDER BY create_date DESC`;
       }
     }
+    let totaldataquery = await commonService.sqlJoinQuery(query);
+    let leadslist = [];
+    for (let item1 of totaldataquery.result) {
+      leadslist.push(item1)
+      dataLength = dataLength + 1;
+    }
+
+    let startPage = (pageNo * pageLength) - pageLength + 1;
+
+    query = `${query} LIMIT ${startPage},${pageLength}`;
+
 
     let queryResult = await commonService.sqlJoinQuery(query);
 
-    let leadslist=[];
-    for(let item1 of queryResult.result)
-    {
-      leadslist.push(item1)
-    } 
+    let leadslist1 = [];
+    for (let item1 of queryResult.result) {
+      leadslist1.push(item1)
+    }
 
     if (queryResult.success) {
       res.status(200).send({
         status: 200,
-        data: leadslist,
+        data: leadslist1,
+        totalLeads: dataLength
       });
     } else {
       res.status(500).send({
@@ -341,6 +351,77 @@ const leadDelete = async (req, res) => {
 };
 
 
+//favourite button
+const favouriteButton = async (req, res) => {
+  try {
+    let id = req.params.id;
+    let parameters;
+
+    let tblName = "tbl_lead";
+
+    let parameters1 = "*";
+
+    let condition1 = " id='" +
+      id +
+      "'";
+
+    let queryResult1 = await commonService.sqlSelectQueryWithParametrs(
+      tblName,
+      parameters1,
+      condition1
+    );
+
+    if (queryResult1.success) {
+
+if(queryResult1.result[0].favourite=="Yes"){
+  parameters =
+  "favourite= '" +
+  "No" +
+  "' Where id = " +
+  id +
+  "";
+
+}
+else {
+  parameters =
+  "favourite= '" +
+  "Yes" +
+  "' Where id = " +
+  id +
+  "";
+}  
+        let queryResult = await commonService.sqlUpdateQueryWithParametrs(
+          tblName,
+          parameters
+        );
+        if (queryResult.success) {
+          res.status(200).send({
+            status: 200,
+            message: "favourite Record Changed",
+          });
+        } else {
+          res.status(500).send({
+            status: 500,
+            message: "Something went wrong",
+            error: queryResult.error,
+          });
+        }
+
+    } else {
+      res.status(500).send({
+        status: 500,
+        message: "Something went wrong",
+        error: e,
+      });
+    }
+  } catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+};
 
 //favourite button
 const favouriteButton = async (req, res) => {
