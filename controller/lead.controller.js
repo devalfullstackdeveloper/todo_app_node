@@ -6,6 +6,8 @@ const showlead = async (req, res) => {
     let query;
     let emp_code = req.params.emp_code;
     let filtertype = req.body.filtertype;
+    let sortType = req.body.sortType;
+    let sortBy = req.body.sortBy;
     let tblName = "tbl_lead";
     let parameters = "*"
     let condition = `flag= 0 ORDER BY id desc`;
@@ -41,17 +43,43 @@ const showlead = async (req, res) => {
       query = `SELECT * FROM tbl_lead WHERE favourite='Yes' AND flag= 0`;
     }
 
-
-
-
-
+    if (sortBy == 'None') {
+      if(sortType=='asc'){
+        query = `${query} ORDER BY create_date ASC`;
+      }
+      if(sortType=='desc'){       
+        query = `${query} ORDER BY create_date DESC`;
+      }
+    }
+    else if (sortBy == 'name') {
+      if(sortType=='asc'){
+        query = `${query} ORDER BY first_name ASC`;
+      }
+      if(sortType=='desc'){
+        query = `${query} ORDER BY first_name DESC`;
+      }
+    }
+    else if (sortBy == 'create_date') {
+      if(sortType=='asc'){
+        query = `${query} ORDER BY create_date ASC`;
+      }
+      if(sortType=='desc'){
+        query = `${query} ORDER BY create_date DESC`;
+      }
+    }
 
     let queryResult = await commonService.sqlJoinQuery(query);
+
+    let leadslist=[];
+    for(let item1 of queryResult.result)
+    {
+      leadslist.push(item1)
+    } 
 
     if (queryResult.success) {
       res.status(200).send({
         status: 200,
-        data: queryResult.result,
+        data: leadslist,
       });
     } else {
       res.status(500).send({
