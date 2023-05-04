@@ -342,6 +342,80 @@ const leadDelete = async (req, res) => {
 
 
 
+//favourite button
+const favouriteButton = async (req, res) => {
+  try {
+    let id = req.params.id;
+    let parameters;
+
+    let tblName = "tbl_lead";
+
+    let parameters1 = "*";
+
+    let condition1 = " id='" +
+      id +
+      "'";
+
+    let queryResult1 = await commonService.sqlSelectQueryWithParametrs(
+      tblName,
+      parameters1,
+      condition1
+    );
+
+    console.log(queryResult1.result);
+
+
+    if (queryResult1.success) {
+
+if(queryResult1.result[0].favourite=="Yes"){
+  parameters =
+  "favourite= '" +
+  "No" +
+  "' Where id = " +
+  id +
+  "";
+
+}
+else {
+  parameters =
+  "favourite= '" +
+  "Yes" +
+  "' Where id = " +
+  id +
+  "";
+}  
+        let queryResult = await commonService.sqlUpdateQueryWithParametrs(
+          tblName,
+          parameters
+        );
+        if (queryResult.success) {
+          res.status(200).send({
+            status: 200,
+            message: "favourite Record Changed",
+          });
+        } else {
+          res.status(500).send({
+            status: 500,
+            message: "Something went wrong",
+            error: queryResult.error,
+          });
+        }
+
+    } else {
+      res.status(500).send({
+        status: 500,
+        message: "Something went wrong",
+        error: e,
+      });
+    }
+  } catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+};
 
 
 
@@ -353,5 +427,6 @@ module.exports = {
   showlead,
   leadAdd,
   leadDelete,
-  leadEdit
+  leadEdit,
+  favouriteButton
 };

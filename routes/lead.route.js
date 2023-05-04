@@ -13,5 +13,7 @@ router.post('/leadAdd',educationController.leadAdd)
 router.post('/leadEdit/:id',educationController.leadEdit)
 router.get('/leadDelete/:id',educationController.leadDelete)
 
+router.get('/favourite/:id',educationController.favouriteButton)
+
 module.exports = router;
 
