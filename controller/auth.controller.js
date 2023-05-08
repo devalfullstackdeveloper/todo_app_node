@@ -65,9 +65,9 @@ const userRegistration = async (req, res) => {
           });
         }
          let pass = req.body.password;
-         let cpass = req.body.confirm_password;
+         
         let parameters = req.body;
-
+delete parameters.confirm_password;
         parameters.role_id = 2;
         parameters.created_date = moment().format("YYYY-MM-DD").toString();
         parameters.updated_date = moment().format("YYYY-MM-DD").toString();
@@ -75,8 +75,7 @@ const userRegistration = async (req, res) => {
         let encryptPassword = await bcrypt.hash(pass, salt);
         parameters.password = encryptPassword;
 
-        let encryptCPassword = await bcrypt.hash(cpass, salt);
-        parameters.confirm_password = encryptCPassword;
+      
 
         let queryResult = await commonService.sqlQueryWithParametrs(
           tblName,
@@ -227,8 +226,6 @@ const userRegistration = async (req, res) => {
               let tblName = "tbl_user"; 
               let parameters =
                 "password = '" +
-                newPassword +
-                "',confirm_password = '" +
                 newPassword +
                 "' Where email = '" +
                 req.body.email +
