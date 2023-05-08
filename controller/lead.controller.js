@@ -73,10 +73,9 @@ const showlead = async (req, res) => {
       dataLength = dataLength + 1;
     }
 
-    let startPage = (pageNo * pageLength) - pageLength + 1;
+    let startPage = (pageNo * pageLength) - pageLength;
 
     query = `${query} LIMIT ${startPage},${pageLength}`;
-
 
     let queryResult = await commonService.sqlJoinQuery(query);
 
