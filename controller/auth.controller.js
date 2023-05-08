@@ -13,16 +13,14 @@ app.use("/profile", express.static("uploads"));
 const userRegistration = async (req, res) => {
   try {
     let validationRule = {
-      full_name: "required|string",
-      // last_name: "required|string",
+      first_name: "required|string",
+      last_name: "required|string",
       email: "required|email",
       phone_no: "required|integer|mobRegex",
       password: "required|string|min:8|max:8|passwordRegx",
-      confirm_password: "required|string|min:8|max:8|passwordRegx",
-      date_of_joining:"required|string",
-      designation_id:"required|integer",
-      dev_role:"required|integer",
-      emp_code:"required|integer"
+      confirm_password: "required|string|min:8|max:8|passwordRegx"
+    
+      
     };
     let isvalidated = await commonService.validateRequest(
       req.body,
@@ -35,7 +33,7 @@ const userRegistration = async (req, res) => {
         error: isvalidated.error,
       });
     } else {
-      let tblName = "tbl_employee";
+      let tblName = "tbl_user";
       let parameters = "*";
       let condition = "email = '" + req.body.email + "'";
       let queryResult = await commonService.sqlSelectQueryWithParametrs(
@@ -141,7 +139,7 @@ const userRegistration = async (req, res) => {
         });
       } else {
   
-        let tblName = "tbl_employee";
+        let tblName = "tbl_user";
         let parameters = "*";
         let condition = "email = '" + req.body.email + "' AND flag = 0";
        
@@ -213,7 +211,7 @@ const userRegistration = async (req, res) => {
           error: isvalidated.error,
         });
       } else {
-        let tblName = "tbl_employee";
+        let tblName = "tbl_user";
         let parameters = "*";
         let condition = "email = '" + req.body.email + "'";
         let queryResult = await commonService.sqlSelectQueryWithParametrs(
@@ -232,7 +230,7 @@ const userRegistration = async (req, res) => {
             let encryptPassword = await bcrypt.hash(newPass, salt);
             let newPassword = encryptPassword;
   
-              let tblName = "tbl_employee"; 
+              let tblName = "tbl_user"; 
               let parameters =
                 "password = '" +
                 newPassword +
