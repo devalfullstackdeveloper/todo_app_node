@@ -46,55 +46,65 @@ const uploadDocument = multer({
 
 const addDocument = async (req, res) => {
     try {
-        const attachment_for = req.body.attachment_for;
+        const { attachment_for, user_id, client_id, project_id } = req.body;
         const doc = req.files;
-        if (!doc || !(attachment_for == 1 || attachment_for == 2 || attachment_for == 3)) {
-            res.status(412).send({
-                status: 412,
-                message: "Document not found or type on defined"
-            });
-        } else {
-            let docUrl = [];
-            for (let i = 0; i < doc.length; i++) {
-                let url = `Attachments/${doc[i].filename}`;
-                docUrl.push(url);
-                let query = `SELECT * FROM tbl_attachments WHERE flag = 1 AND name = '${doc[i].originalname}'`;
-                let queryResult = await commonService.sqlJoinQuery(query);
-                if (queryResult.result.length == 0) {
-                    let Parameter = {
-                        name: doc[i].filename,
-                        attachment_for,
-                        path: url,
-                        created_at: moment().format("YYYY-MM-DD hh:mm:ss").toString(),
-                        updated_at: moment().format("YYYY-MM-DD hh:mm:ss").toString()
-                    }
-                    if (Parameter) {
-                        let tblName = "tbl_attachments";
-                        let queryResult = await commonService.sqlQueryWithParametrs(
-                            tblName,
-                            Parameter
-                        );
-                        if (queryResult.result.affectedRows > 0) {
-                            res.status(200).send({
-                                status: 200,
-                                message: "Documents successfully added",
-                                documentUrl: docUrl
-                            });
-                        } else {
-                            res.status(500).send({
-                                status: 500,
-                                message: "Something went wrong !",
-                            });
+        if (user_id && client_id){
+            if (!doc || !(attachment_for == 1 || attachment_for == 2 || attachment_for == 3)) {
+                res.status(412).send({
+                    status: 412,
+                    message: "Document not found or type on defined"
+                });
+            } else {
+                let docUrl = [];
+                for (let i = 0; i < doc.length; i++) {
+                    let url = `Attachments/${doc[i].filename}`;
+                    docUrl.push(url);
+                    let query = `SELECT * FROM tbl_attachments WHERE flag = 1 AND name = '${doc[i].originalname}'`;
+                    let queryResult = await commonService.sqlJoinQuery(query);
+                    if (queryResult.result.length == 0) {
+                        let Parameter = {
+                            name: doc[i].filename,
+                            attachment_for,
+                            user_id,
+                            client_id,
+                            project_id,
+                            path: url,
+                            created_at: moment().format("YYYY-MM-DD hh:mm:ss").toString(),
+                            updated_at: moment().format("YYYY-MM-DD hh:mm:ss").toString()
+                        }
+                        if (Parameter) {
+                            let tblName = "tbl_attachments";
+                            let queryResult = await commonService.sqlQueryWithParametrs(
+                                tblName,
+                                Parameter
+                            );
+                            if (queryResult.result.affectedRows > 0) {
+                                res.status(200).send({
+                                    status: 200,
+                                    message: "Documents successfully added",
+                                    documentUrl: docUrl
+                                });
+                            } else {
+                                res.status(500).send({
+                                    status: 500,
+                                    message: "Something went wrong !",
+                                });
+                            }
                         }
                     }
-                }
-                else {
-                    res.status(403).send({
-                        status: 403,
-                        message: "File Name Already Exists",
-                    });
+                    else {
+                        res.status(403).send({
+                            status: 403,
+                            message: "File Name Already Exists",
+                        });
+                    }
                 }
             }
+        } else {
+            res.status(500).send({
+                status: 500,
+                message: "user_id & client_id required!",
+            });
         }
     } catch (e) {
         res.status(500).send({
@@ -115,8 +125,11 @@ const getDocument = async (req, res) => {
                 if (fs.existsSync("./Attachments/" + queryResult.result[i].name)) {
                     let fileData = {
                         fileId: queryResult.result[i].id,
-                        fileName: queryResult.result[i].name,
                         file_for: queryResult.result[i].attachment_for,
+                        user_id: queryResult.result[i].user_id,
+                        client_id: queryResult.result[i].client_id,
+                        project_id: queryResult.result[i].project_id,
+                        fileName: queryResult.result[i].name,
                         filePath: queryResult.result[i].path
                     }
                     doc.push(fileData);
