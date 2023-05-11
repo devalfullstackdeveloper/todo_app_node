@@ -48,7 +48,7 @@ const addDocument = async (req, res) => {
     try {
         const { attachment_for, user_id, client_id, project_id } = req.body;
         const doc = req.files;
-        if (user_id && client_id){
+        if (user_id && client_id) {
             if (!doc || !(attachment_for == 1 || attachment_for == 2 || attachment_for == 3)) {
                 res.status(412).send({
                     status: 412,
@@ -198,10 +198,65 @@ const deleteDocument = async (req, res) => {
     }
 }
 
+const checkDirPro = async (req, res, next) => {
+    try {
+        if (!fs.existsSync('./uploads')) {
+            fs.mkdirSync('./uploads');
+        } else {
+            console.error(
+                {
+                    message: "Directory Already Exists.",
+                });
+        }
+    } catch (e) {
+        console.log(e);
+    }
+    return next();
+}
+
+const upload = multer({
+    storage: multer.diskStorage({
+        destination: function (req, file, cb) {
+            cb(null, "uploads");
+        },
+        filename: function (req, file, cb) {
+            cb(null, file.fieldname + "-" + Date.now() + ".jpg");
+        },
+    }),
+}).single("files");
+
+const uploadFile = async function (req, res) {
+    try {
+        const images = req.file;
+        if (!images && images != "") {
+            res.status(412).send({
+                status: 412,
+                message: "Image not found",
+            });
+        } else {
+            let url = `profile/${images.filename}`;
+            res.status(200).send({
+                status: 200,
+                message: "Image uploaded successfully",
+                imgUrl: url
+            });
+        }
+    } catch (e) {
+        res.status(500).send({
+            status: 500,
+            message: "Something went wrong!",
+            error: e
+        });
+    }
+};
+
 module.exports = {
     checkDir,
     uploadDocument,
     addDocument,
     getDocument,
-    deleteDocument
+    deleteDocument,
+    checkDirPro,
+    upload,
+    uploadFile
 }
