@@ -145,7 +145,7 @@ const updateClientInfo = async (req, res) => {
             } else {
                 res.status(403).send({
                     status: 403,
-                    message: "no records found Present!",
+                    message: "no records found!",
                 });
             }
 

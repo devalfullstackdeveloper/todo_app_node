@@ -270,9 +270,160 @@ const resetPassword = async (req, res) => {
   }
 }
 
+const editUser = async (req, res) => {
+  try {
+    const updated_at = moment().format("YYYY-MM-DD hh:mm:ss").toString();
+    let id = req.params.id;
+    let parameters = "";
+    if (req.body.first_name) { parameters += "  first_name = '" + req.body.first_name + "'," }
+    if (req.body.last_name) { parameters += "  last_name = '" + req.body.last_name + "'," }
+    if (req.body.profile_img) { parameters += "  profile_img = '" + req.body.profile_img + "'," }
+    if (req.body.phone_no) { parameters += "  phone_no = '" + req.body.phone_no + "'," }
+    if (req.body.email) { parameters += "  email = '" + req.body.email + "'," }
+    if (req.body.date_of_birth) { parameters += "  date_of_birth = '" + req.body.date_of_birth + "'," }
+    if (req.body.street) { parameters += "  street = '" + req.body.street + "'," }
+    if (req.body.zipcode) { parameters += "  zipcode = '" + req.body.zipcode + "'," }
+    if (req.body.city) { parameters += "  city = '" + req.body.city + "'," }
+    parameters += " updated_date = '" + updated_at + "' Where id = " + id + "";
+
+    let tblName = "tbl_user";
+    let parameters1 = "Count(id) As count";
+    let condition1 = " id ='" +
+      id +
+      "' AND flag='" +
+      0 +
+      "' ";
+    let queryResult1 = await commonService.sqlSelectQueryWithParametrs(
+      tblName,
+      parameters1,
+      condition1
+    );
+    if (queryResult1.success) {
+
+      if (queryResult1.result[0].count > 0) {
+
+        let queryResult = await commonService.sqlUpdateQueryWithParametrs(
+          tblName,
+          parameters
+        );
+        if (queryResult.success) {
+          res.status(200).send({
+            status: 200,
+            message: "Update Record Successfully",
+          });
+        } else {
+          res.status(500).send({
+            status: 500,
+            message: "Something went wrong",
+            error: queryResult.error,
+          });
+        }
+
+      } else {
+        res.status(403).send({
+          status: 403,
+          message: "no records found!",
+        });
+      }
+
+    } else {
+      res.status(500).send({
+        status: 500,
+        message: "Something went wrong",
+        error: e,
+      });
+    }
+  } catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+}
+
+const userList = async (req, res) => {
+  try {
+    const query = `SELECT id, concat(first_name," ",last_name) as full_name, profile_img as profile_path, email FROM tbl_user WHERE flag = 0`
+    let getList = await commonService.sqlJoinQuery(query);
+    if (getList.result.length > 0) {
+      res.status(200).send({
+        status: 200,
+        result: getList.result,
+      });
+    } else {
+      res.status(500).send({
+        status: 500,
+        message: "No records Found",
+        error: getList.error,
+      });
+    }
+  } catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+}
+
+const deleteUser = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const tblName = 'tbl_user';
+    const parameter = '*';
+    const condition = `id = ${id} AND flag = 0`;
+    const getUser = await commonService.sqlSelectQueryWithParametrs(
+      tblName,
+      parameter,
+      condition
+    );
+    if (getUser.success) {
+      if (getUser.result.length > 0){
+        let parameters = "flag = 1 Where id = " + id + "";
+        let queryResult = await commonService.sqlUpdateQueryWithParametrs(
+          tblName,
+          parameters
+        );
+        if (queryResult.success) {
+          res.status(200).send({
+            status: 200,
+            message: "deleted Record Successfully",
+          });
+        } else {
+          res.status(500).send({
+            status: 500,
+            message: "Something went wrong",
+            error: queryResult.error,
+          });
+        }
+      }else{
+        res.status(500).send({
+          status: 500,
+          message: "No User for selected Id",
+          error: getUser.error
+        });  
+      }
+    } else {
+      res.status(500).send({
+        status: 500,
+        message: "No User for selected Id"
+      });
+    }
+  } catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+}
 
 module.exports = {
   userRegistration,
   userLogin,
-  resetPassword
+  resetPassword,
+  editUser,
+  userList,
+  deleteUser
 };
