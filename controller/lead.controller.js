@@ -1,5 +1,7 @@
 const { compareSync } = require("bcrypt");
 const commonService = require("../services/common.services");
+const moment = require("moment/moment");
+
 
 const showlead = async (req, res) => {
   try {
@@ -497,10 +499,151 @@ const favouriteButton = async (req, res) => {
 //   }
 // };
 
+const addFollowUp = async (req, res) => {
+  try {
+    let validationRule = {
+      user_id: "required|string",
+      lead_id: "required|string",
+      remainder: "required|string",
+      related_to: "required|string",
+      related_to: "required|string"
+    };
+    let isvalidated = await commonService.validateRequest(
+      req.body,
+      validationRule
+    );
+    if (!isvalidated.status) {
+      res.status(412).send({
+        status: 412,
+        message: "Validation failed",
+        error: isvalidated.error,
+      });
+    } else {
+      const payload = req.body;
+      let tblName = "tbl_followup";
+      let parameters = "*";
+      let condition = "user_id = '" + payload.user_id + "' AND lead_id = '" + payload.lead_id + "' AND remainder = '" + payload.remainder + "' AND related_to = '" + payload.related_to + "' AND link = '" + payload.link + "' AND attendees = '" + payload.attendees + "' AND flag = 0";
+      let queryResult = await commonService.sqlSelectQueryWithParametrs(
+        tblName,
+        parameters,
+        condition
+      );
+      if (queryResult.success && queryResult.result.length > 0) {
+        res.status(412).send({
+          status: 412,
+          message: "Validation failed",
+          error: {
+            email: [
+              "Follow Up Already Exists",
+            ],
+          },
+        });
+      } else {
+        parameters = {
+          user_id: payload.user_id,
+          lead_id: payload.lead_id,
+          remainder: payload.remainder,
+          description: payload.description,
+          link: payload.link,
+          related_to: payload.related_to,
+          attendees: payload.attendees
+        };
+        let queryResult = await commonService.sqlQueryWithParametrs(
+          tblName,
+          parameters
+        );
+        if (queryResult.success) {
+          res.status(200).send({
+            status: 200,
+            message: "Follow Up successfully Added",
+          });
+        } else {
+          res.status(500).send({
+            status: 500,
+            message: "Something went wrong1!",
+            error: e,
+          });
+        }
+      }
+    }
+  } catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+}
 
+const updateFollowUp = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const updated_at = moment().format("YYYY-MM-DD hh:mm:ss").toString();
+    let parameters = "";
+    if (req.body.lead_id) { parameters += "  lead_id = '" + req.body.lead_id + "'," }
+    if (req.body.remainder) { parameters += "  remainder = '" + req.body.remainder + "'," }
+    if (req.body.description) { parameters += "  description = '" + req.body.description + "'," }
+    if (req.body.link) { parameters += "  link = '" + req.body.link + "'," }
+    if (req.body.related_to) { parameters += "  related_to = '" + req.body.related_to + "'," }
+    if (req.body.attendees) { parameters += "  attendees = '" + req.body.attendees + "'," }
+    if (req.body.outcomes) { parameters += "  outcomes = '" + req.body.outcomes + "'," }
+    if (req.body.completed) { parameters += "  completed = '" + req.body.completed + "'," }
+    parameters += "  updated_at = '" + updated_at + "' Where id = " + id + "";
+    let tblName = "tbl_followup";
+    let parameters1 = "Count(id) As count";
+    let condition1 = " id ='" +
+      id +
+      "' AND flag='" +
+      0 +
+      "' ";
+    let queryResult1 = await commonService.sqlSelectQueryWithParametrs(
+      tblName,
+      parameters1,
+      condition1
+    );
+    if (queryResult1.success) {
 
+      if (queryResult1.result[0].count > 0) {
 
+        let queryResult = await commonService.sqlUpdateQueryWithParametrs(
+          tblName,
+          parameters
+        );
+        if (queryResult.success) {
+          res.status(200).send({
+            status: 200,
+            message: "Update Record Successfully",
+          });
+        } else {
+          res.status(500).send({
+            status: 500,
+            message: "Something went wrong",
+            error: queryResult.error,
+          });
+        }
 
+      } else {
+        res.status(403).send({
+          status: 403,
+          message: "no records found!",
+        });
+      }
+
+    } else {
+      res.status(500).send({
+        status: 500,
+        message: "Something went wrong",
+        error: e,
+      });
+    }
+  } catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+}
 
 module.exports = {
 
@@ -508,5 +651,7 @@ module.exports = {
   leadAdd,
   leadDelete,
   leadEdit,
-  favouriteButton
+  favouriteButton,
+  addFollowUp,
+  updateFollowUp
 };
