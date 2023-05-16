@@ -5,6 +5,7 @@ const { route } = require('./auth.route');
 const router = express.Router();
 
 router.post('/showLeads',leadController.showlead);
+router.get('/leadsource', leadController.leadsource)
 
 //lead Add,Edit,Delete
 router.post('/leadAdd',leadController.leadAdd);
