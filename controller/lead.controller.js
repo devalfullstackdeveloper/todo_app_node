@@ -108,6 +108,38 @@ const showlead = async (req, res) => {
   }
 };
 
+//leadsource
+const leadsource = async (req, res) => {
+  const tblName = "tbl_lead_source"
+  const parameters = "id,lead_sources_name,status"
+  const condition = ""
+
+  let queryresult = await commonService.sqlSelectQueryWithParametrs(tblName, parameters, condition)
+
+  try {
+    if (queryresult.success) {
+      // let newqueryresult = []
+      // queryresult.result.map((item) => {
+      //   const { created_at, updated_at, ...other } = item
+      //   newqueryresult.push(other)
+      // })
+      res.status(200).send(queryresult.result);
+    } else {
+      res.status(500).send({
+        status: 500,
+        message: "Something went wrong!",
+        error: queryResult.error,
+      });
+    }
+  } catch (error) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: error,
+    });
+  }
+}
+
 
 //Adding lead
 const leadAdd = async (req, res) => {
@@ -761,5 +793,6 @@ module.exports = {
   followupList,
   statusList,
   industriesList,
-  priorityList
+  priorityList,
+  leadsource
 };
