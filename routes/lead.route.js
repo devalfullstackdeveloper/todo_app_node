@@ -13,6 +13,10 @@ router.get('/leadDelete/:id',leadController.leadDelete);
 router.get('/favourite/:id',leadController.favouriteButton);
 router.post('/add_followup', leadController.addFollowUp);
 router.post('/update_followup/:id', leadController.updateFollowUp);
+router.post('/followup_list',leadController.followupList);
+router.get('/priority_list/:event',leadController.priorityList);
+router.get('/industries_list/:event',leadController.industriesList);
+router.get('/status_list/:event',leadController.statusList);
 
 module.exports = router;
 

@@ -61,45 +61,39 @@ const userRegistration = async (req, res) => {
               ],
             },
           });
-        }
-        let pass = req.body.password;
+        } else {
+          let pass = req.body.password;
+          let parameters = req.body;
+          delete parameters.confirm_password;
+          const salt = await bcrypt.genSalt(10);
+          let encryptPassword = await bcrypt.hash(pass, salt);
+          parameters.password = encryptPassword;
 
-        let parameters = req.body;
-        delete parameters.confirm_password;
-        parameters.role_id = 2;
-        parameters.created_date = moment().format("YYYY-MM-DD").toString();
-        parameters.updated_date = moment().format("YYYY-MM-DD").toString();
-        const salt = await bcrypt.genSalt(10);
-        let encryptPassword = await bcrypt.hash(pass, salt);
-        parameters.password = encryptPassword;
-
-
-
-        let queryResult = await commonService.sqlQueryWithParametrs(
-          tblName,
-          parameters
-        );
-
-        if (queryResult.success) {
-          // const secret = "secret";
-          const token = jwt.sign(
-            {
-              data: queryResult.result[0],
-            },
-            process.env.secret
+          let queryResult = await commonService.sqlQueryWithParametrs(
+            tblName,
+            parameters
           );
 
-          res.status(200).send({
-            status: 200,
-            message: "Registration Successfully",
-            token: token,
-          });
-        } else {
-          res.status(500).send({
-            status: 500,
-            message: "Something went wrong!",
-            error: queryResult.error,
-          });
+          if (queryResult.success) {
+            const token = jwt.sign(
+              {
+                data: queryResult.result[0],
+              },
+              process.env.secret
+            );
+
+            res.status(200).send({
+              status: 200,
+              message: "Registration Successfully",
+              token: token,
+            });
+          } else {
+            res.status(500).send({
+              status: 500,
+              message: "Something went wrong!",
+              error: queryResult.error,
+            });
+          }
         }
       }
     }
@@ -343,7 +337,7 @@ const editUser = async (req, res) => {
 
 const userList = async (req, res) => {
   try {
-    const query = `SELECT id, concat(first_name," ",last_name) as full_name, profile_img as profile_path, email FROM tbl_user WHERE flag = 0`
+    const query = `SELECT id, concat(first_name," ",last_name) as full_name, profile_img as profile_path, email, phone_no, date_of_birth, street, city,zipcode ,(SELECT count(id) FROM tbl_lead WHERE user_id = tbl_user.id ) as total_leads FROM tbl_user WHERE flag = 0`
     let getList = await commonService.sqlJoinQuery(query);
     if (getList.result.length > 0) {
       res.status(200).send({
@@ -378,7 +372,7 @@ const deleteUser = async (req, res) => {
       condition
     );
     if (getUser.success) {
-      if (getUser.result.length > 0){
+      if (getUser.result.length > 0) {
         let parameters = "flag = 1 Where id = " + id + "";
         let queryResult = await commonService.sqlUpdateQueryWithParametrs(
           tblName,
@@ -396,12 +390,12 @@ const deleteUser = async (req, res) => {
             error: queryResult.error,
           });
         }
-      }else{
+      } else {
         res.status(500).send({
           status: 500,
           message: "No User for selected Id",
           error: getUser.error
-        });  
+        });
       }
     } else {
       res.status(500).send({
