@@ -108,27 +108,24 @@ const showlead = async (req, res) => {
   }
 };
 
-//leadsource
 const leadsource = async (req, res) => {
+  try{
   const tblName = "tbl_lead_source"
   const parameters = "id,lead_sources_name,status"
   const condition = ""
 
-  let queryresult = await commonService.sqlSelectQueryWithParametrs(tblName, parameters, condition)
-
-  try {
-    if (queryresult.success) {
-      // let newqueryresult = []
-      // queryresult.result.map((item) => {
-      //   const { created_at, updated_at, ...other } = item
-      //   newqueryresult.push(other)
-      // })
-      res.status(200).send(queryresult.result);
+  let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameters, condition)
+     if (query.success) 
+     {
+      res.status(200).send({
+        status:200,
+        data:query.result
+      });
     } else {
       res.status(500).send({
         status: 500,
-        message: "Something went wrong!",
-        error: queryResult.error,
+        message: "No Record Found.",
+        error: query.error,
       });
     }
   } catch (error) {
@@ -139,7 +136,6 @@ const leadsource = async (req, res) => {
     });
   }
 }
-
 
 //Adding lead
 const leadAdd = async (req, res) => {
