@@ -114,10 +114,8 @@ const leadAdd = async (req, res) => {
   try {
     let payload = req.body;
 
-    let todayDate = new Date()
-    let todayDate1 = todayDate.toISOString().split('T')[0]
-
     let parameters = {
+      user_id: payload.user_id,
       first_name: payload.first_name,
       last_name: payload.last_name,
       company: payload.company,
@@ -134,8 +132,6 @@ const leadAdd = async (req, res) => {
       lead_source: payload.lead_source,
       annual_revenue: payload.annual_revenue,
       industry: payload.industry,
-      create_date: todayDate1
-
     };
 
     let tblName = "tbl_lead";
@@ -645,6 +641,114 @@ const updateFollowUp = async (req, res) => {
   }
 }
 
+const followupList = async (req, res) => {
+  try {
+
+  } catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+}
+
+const statusList = async (req, res) => {
+  try {
+    const event = req.params.event
+    let condition;
+    if (event == 'All') {
+      condition = '';
+    } else if (event == 1) {
+      condition = 'flag = 0';
+    } else {
+      condition = 'flag = 1';
+    }
+    const query = await commonService.sqlSelectQueryWithParametrs("tbl_status", "id, name", condition);
+    if (query.result.length > 0) {
+      res.status(200).send({
+        status: 200,
+        data: query.result,
+      });
+    } else {
+      res.status(500).send({
+        status: 500,
+        message: "No Records Found",
+        error: query.error,
+      });
+    }
+  } catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+}
+const industriesList = async (req, res) => {
+  try {
+    const event = req.params.event
+    let condition;
+    if (event == 'All') {
+      condition = '';
+    } else if (event == 1) {
+      condition = 'flag = 0';
+    } else {
+      condition = 'flag = 1';
+    }
+    const query = await commonService.sqlSelectQueryWithParametrs("tbl_industries", "id, name", condition);
+    if (query.result.length > 0) {
+      res.status(200).send({
+        status: 200,
+        data: query.result,
+      });
+    } else {
+      res.status(500).send({
+        status: 500,
+        message: "No Records Found",
+        error: query.error,
+      });
+    }
+  } catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+}
+const priorityList = async (req, res) => {
+  try {
+    const event = req.params.event
+    let condition;
+    if (event == 'All') {
+      condition = '';
+    } else if (event == 1) {
+      condition = 'flag = 0';
+    } else {
+      condition = 'flag = 1';
+    }
+    const query = await commonService.sqlSelectQueryWithParametrs("tbl_priority", "id, name", condition); if (query.result.length > 0) {
+      res.status(200).send({
+        status: 200,
+        data: query.result,
+      });
+    } else {
+      res.status(500).send({
+        status: 500,
+        message: "No Records Found",
+        error: query.error,
+      });
+    }
+  } catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+}
+
 module.exports = {
 
   showlead,
@@ -653,5 +757,9 @@ module.exports = {
   leadEdit,
   favouriteButton,
   addFollowUp,
-  updateFollowUp
+  updateFollowUp,
+  followupList,
+  statusList,
+  industriesList,
+  priorityList
 };
