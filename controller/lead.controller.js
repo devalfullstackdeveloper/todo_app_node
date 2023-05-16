@@ -159,13 +159,12 @@ const leadAdd = async (req, res) => {
       street: payload.street,
       city: payload.city,
       zipcode: payload.zipcode,
+      country: payload.country,
       website: payload.website,
-      no_of_employee: payload.no_of_employee,
       lead_source: payload.lead_source,
-      annual_revenue: payload.annual_revenue,
       industry: payload.industry,
+      assigned_employee: payload.assigned_employee
     };
-
     let tblName = "tbl_lead";
 
     let parameters1 = "Count(id) As count";
@@ -236,7 +235,7 @@ const leadEdit = async (req, res) => {
   try {
     let id = req.params.id;
     let payload = req.body;
-    let todayDate = new Date()
+    const updated_at = moment().format("YYYY-MM-DD hh:mm:ss").toString();
     let parameters =
       "first_name= '" +
       req.body.first_name +
@@ -260,25 +259,27 @@ const leadEdit = async (req, res) => {
       req.body.city +
       "' ,  zipcode = '" +
       req.body.zipcode +
+      "' ,  country = '" +
+      req.body.country +
       "' ,  website = '" +
       req.body.website +
-      "' ,  no_of_employee = '" +
-      req.body.no_of_employee +
       "' ,  lead_source = '" +
       req.body.lead_source +
-      "' ,  annual_revenue = '" +
-      req.body.annual_revenue +
       "' ,  industry = '" +
       req.body.industry +
+      "' ,  assigned_employee = '" +
+      req.body.assigned_employee +
+      "' ,  updated_at = '" +
+      updated_at +
       "' Where id = " +
       id +
-      "";
+      " AND flag = 0";
 
     let tblName = "tbl_lead";
 
     let parameters1 = "Count(id) As count";
 
-    let condition1 = " email='" +
+    let condition1 = "id = '" + id + "'AND email='" +
       payload.email +
       "' AND flag='" +
       0 +
@@ -291,7 +292,7 @@ const leadEdit = async (req, res) => {
     );
     if (queryResult1.success) {
 
-      if (queryResult1.result[0].count == 0) {
+      if (queryResult1.result[0].count > 0) {
 
         let queryResult = await commonService.sqlUpdateQueryWithParametrs(
           tblName,
@@ -314,7 +315,7 @@ const leadEdit = async (req, res) => {
       else {
         res.status(403).send({
           status: 403,
-          message: "Data Already Present!",
+          message: "Data Not Present!",
         });
       }
 
@@ -343,10 +344,12 @@ const leadDelete = async (req, res) => {
   try {
 
     let id = req.params.id;
+    const updated_at = moment().format("YYYY-MM-DD hh:mm:ss").toString();
 
     let parameters =
-      "flag = 1" +
-      " Where id = " +
+      "flag = 1" + " ,  updated_at = '" +
+      updated_at +
+      "' Where id = " +
       id +
       "";
 
@@ -782,7 +785,6 @@ const priorityList = async (req, res) => {
 }
 
 module.exports = {
-
   showlead,
   leadAdd,
   leadDelete,
