@@ -10,10 +10,10 @@ const { verifyToken } = require('../middleware/verifyToken');
 
 const router = express.Router();
 router.use('/auth', authRoutes);
-router.use('/dashboard',dashboard)
-router.use('/lead', leadRoutes);
-router.use('/note', noteRoutes);
-router.use('/client', clientRoutes);
-router.use('/upload', uploadRoutes);
+router.use('/dashboard', verifyToken, dashboard);
+router.use('/lead', verifyToken, leadRoutes);
+router.use('/note', verifyToken, noteRoutes);
+router.use('/client', verifyToken, clientRoutes);
+router.use('/upload', verifyToken, uploadRoutes);
 
 module.exports = router;
