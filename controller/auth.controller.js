@@ -337,7 +337,7 @@ const editUser = async (req, res) => {
 
 const userList = async (req, res) => {
   try {
-    const query = `SELECT id, concat(first_name," ",last_name) as full_name, profile_img as profile_path, email, phone_no, date_of_birth, street, city,zipcode ,(SELECT count(id) FROM tbl_lead WHERE user_id = tbl_user.id ) as total_leads FROM tbl_user WHERE flag = 0`
+    const query = `SELECT id,first_name,last_name, profile_img as profile_path, email, phone_no, date_of_birth, street, city,zipcode ,(SELECT count(id) FROM tbl_lead WHERE user_id = tbl_user.id ) as total_leads FROM tbl_user WHERE flag = 0`
     let getList = await commonService.sqlJoinQuery(query);
     if (getList.result.length > 0) {
       res.status(200).send({

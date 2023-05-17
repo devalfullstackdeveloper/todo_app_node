@@ -777,7 +777,7 @@ module.exports = {
   favouriteButton,
   addFollowUp,
   updateFollowUp,
-  followupList,
+  // followupList,
   statusList,
   industriesList,
   priorityList,
