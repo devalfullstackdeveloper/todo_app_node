@@ -672,17 +672,6 @@ const updateFollowUp = async (req, res) => {
   }
 }
 
-const followupList = async (req, res) => {
-  try {
-
-  } catch (e) {
-    res.status(500).send({
-      status: 500,
-      message: "Something went wrong!",
-      error: e,
-    });
-  }
-}
 
 const statusList = async (req, res) => {
   try {
