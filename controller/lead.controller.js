@@ -109,17 +109,16 @@ const showlead = async (req, res) => {
 };
 
 const leadsource = async (req, res) => {
-  try{
-  const tblName = "tbl_lead_source"
-  const parameters = "id,lead_sources_name,status"
-  const condition = ""
+  try {
+    const tblName = "tbl_lead_source"
+    const parameters = "id,lead_sources_name,status"
+    const condition = ""
 
-  let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameters, condition)
-     if (query.success) 
-     {
+    let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameters, condition)
+    if (query.success) {
       res.status(200).send({
-        status:200,
-        data:query.result
+        status: 200,
+        data: query.result
       });
     } else {
       res.status(500).send({
@@ -601,6 +600,97 @@ const addFollowUp = async (req, res) => {
     });
   }
 }
+const followUpList = async (req, res) => {
+  try {
+    const params = req.params.type;
+    if (params == "today") {
+      const date = new Date()
+      const formatDate = moment(date).format('YYYY-MM-DD')
+      const tblName = "tbl_followup"
+      const parameter = "*"
+      const condition = `user_id=${req.headers.user_id} AND Date(remainder) ='${formatDate}'`
+      let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
+      if (query.success) {
+        res.status(200).send({
+          status: 200,
+          data: query.result
+        });
+      } else {
+        res.status(500).send({
+          status: 500,
+          message: "No Record Found.",
+          error: query.error,
+        });
+      }
+    } else if (params == "overdue") {
+      const date = new Date()
+      const formatDate = moment(date).format('YYYY-MM-DD')
+      const tblName = "tbl_followup"
+      const parameter = "*"
+      const condition = `user_id=${req.headers.user_id} AND Date(remainder) < '${formatDate}' AND outcomes IS NULL`
+      let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
+      console.log(query);
+      if (query.success) {
+        res.status(200).send({
+          status: 200,
+          data: query.result
+        });
+      } else {
+        res.status(500).send({
+          status: 500,
+          message: "No Record Found.",
+          error: query.error,
+        });
+      }
+
+    } else if (params == "upcoming") {
+      const date = new Date()
+      const formatDate = moment(date).format('YYYY-MM-DD')
+      const tblName = "tbl_followup"
+      const parameter = "*"
+      const condition = `user_id=${req.headers.user_id} AND Date(remainder) > '${formatDate}'`
+      let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
+      if (query.success) {
+        res.status(200).send({
+          status: 200,
+          data: query.result
+        });
+      } else {
+        res.status(500).send({
+          status: 500,
+          message: "No Record Found.",
+          error: query.error,
+        });
+      }
+    } else if (params == "completed") {
+      const date = new Date()
+      const formatDate = moment(date).format('YYYY-MM-DD')
+      const tblName = "tbl_followup"
+      const parameter = "*"
+      const condition = `user_id=${req.headers.user_id} AND outcomes IS NOT NULL`
+      let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
+      if (query.success) {
+        res.status(200).send({
+          status: 200,
+          data: query.result
+        });
+      } else {
+        res.status(500).send({
+          status: 500,
+          message: "No Record Found.",
+          error: query.error,
+        });
+      }
+
+    }
+  } catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+}
 
 const updateFollowUp = async (req, res) => {
   try {
@@ -781,5 +871,6 @@ module.exports = {
   statusList,
   industriesList,
   priorityList,
-  leadsource
+  leadsource,
+  followUpList
 };
