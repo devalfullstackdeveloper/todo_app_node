@@ -24,7 +24,7 @@ const addClientInfo = async (req, res) => {
         } else {
             let tblName = "tbl_client";
             let parameters = "*";
-            let condition = "email = '" + payload.email + "' AND first_name = '" + payload.first_name + "' AND first_name = '" + payload.first_name + "' AND company = '" + payload.company + "' AND flag = 0";
+            let condition = "user_id = '" + payload.user_id + "' AND email = '" + payload.email + "' AND first_name = '" + payload.first_name + "' AND first_name = '" + payload.first_name + "' AND company = '" + payload.company + "' AND flag = 0";
             let queryResult = await commonService.sqlSelectQueryWithParametrs(
                 tblName,
                 parameters,
@@ -42,6 +42,7 @@ const addClientInfo = async (req, res) => {
                 });
             } else {
                 parameters = {
+                    user_id: payload.user_id,
                     first_name: payload.first_name,
                     last_name: payload.last_name,
                     company: payload.company,
