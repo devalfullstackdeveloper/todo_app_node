@@ -12,15 +12,16 @@ const showlead = async (req, res) => {
     let sortBy = req.body.sortBy;
     let pageNo = req.body.pageNo;
     let pageLength = req.body.pageLength;
+    let user_id = req.body.user_id;
 
     let todayDate = new Date()
     let todayDate1 = todayDate.toISOString().split('T')[0]
 
     if (filtertype == 0) {
-      query = `SELECT * FROM tbl_lead WHERE flag= 0`;
+      query = user_id ? `SELECT * FROM tbl_lead WHERE flag= 0 AND user_id = ${user_id}` : `SELECT * FROM tbl_lead WHERE flag= 0`;
     }
     else if (filtertype == 1) {
-      query = `SELECT * FROM tbl_lead WHERE create_date='${todayDate1}' AND flag= 0`;
+      query = user_id ? `SELECT * FROM tbl_lead WHERE create_date='${todayDate1}' AND flag= 0 AND user_id = ${user_id}` : `SELECT * FROM tbl_lead WHERE create_date='${todayDate1}' AND flag= 0`;
 
     }
     else if (filtertype == 2) {
@@ -32,16 +33,16 @@ const showlead = async (req, res) => {
         let day = new Date(curr.setDate(first)).toISOString().slice(0, 10)
         week.push(`'${day}'`)
       }
-      query = `SELECT * FROM tbl_lead WHERE create_date IN (${week}) AND flag= 0`;
+      query = user_id ? `SELECT * FROM tbl_lead WHERE create_date IN (${week}) AND flag= 0 AND user_id = ${user_id}` : `SELECT * FROM tbl_lead WHERE create_date IN (${week}) AND flag= 0`;
     }
     else if (filtertype == 3) {
-      query = `SELECT * FROM tbl_lead WHERE lead_status='New' AND flag= 0`;
+      query = user_id ? `SELECT * FROM tbl_lead WHERE lead_status='New' AND flag= 0 AND user_id = ${user_id}` : `SELECT * FROM tbl_lead WHERE lead_status='New' AND flag= 0`;
     }
     else if (filtertype == 4) {
-      query = `SELECT * FROM tbl_lead WHERE lead_status='Qualified' AND flag= 0`;
+      query = user_id ? `SELECT * FROM tbl_lead WHERE lead_status='Qualified' AND flag= 0 AND user_id = ${user_id}` : `SELECT * FROM tbl_lead WHERE lead_status='Qualified' AND flag= 0`;
     }
     else if (filtertype == 5) {
-      query = `SELECT * FROM tbl_lead WHERE favourite='Yes' AND flag= 0`;
+      query = user_id ? `SELECT * FROM tbl_lead WHERE favourite='Yes' AND flag= 0 AND user_id = ${user_id}` : `SELECT * FROM tbl_lead WHERE favourite='Yes' AND flag= 0`;
     }
 
     if (sortBy == 'None') {
