@@ -6,7 +6,7 @@ const router = express.Router();
 
 
 
-router.post('/showNotes/:client_id',noteController.showNotes)
+router.get('/showNotes/',noteController.showNotes)
 
 //Note Add,Edit,Delete
 router.post('/noteAdd',noteController.noteAdd)
