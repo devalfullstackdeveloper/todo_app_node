@@ -1,6 +1,8 @@
 const { compareSync } = require("bcrypt");
 const commonService = require("../services/common.services");
 const moment = require("moment/moment");
+const { isNull } = require("underscore");
+const { disable } = require("../server");
 
 
 const showlead = async (req, res) => {
@@ -609,7 +611,12 @@ const followUpList = async (req, res) => {
       const formatDate = moment(date).format('YYYY-MM-DD')
       const tblName = "tbl_followup"
       const parameter = "*"
-      const condition = `user_id=${req.headers.user_id} AND Date(remainder) ='${formatDate}'`
+      let condition = ""; //= req.headers.user_id ? "user_id="+req.headers.user_id+" AND" : " " + req.headers.lead_id ? "lead_id="+req.headers.lead_id+" AND" : " " + "Date(remainder) = '" + formatDate +"'";
+      if (req.headers.user_id) { condition += "user_id=" + req.headers.user_id + " AND " }
+      if (req.headers.lead_id) { condition += " lead_id=" + req.headers.lead_id + " AND " }
+      condition += " Date(remainder) = '" + formatDate + "'";
+      // const condition = `user_id=${req.headers.user_id} AND lead_id=${req.headers.lead_id} AND Date(remainder) ='${formatDate}'`
+      console.log(condition);
       let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
       if (query.success) {
         res.status(200).send({
@@ -628,7 +635,11 @@ const followUpList = async (req, res) => {
       const formatDate = moment(date).format('YYYY-MM-DD')
       const tblName = "tbl_followup"
       const parameter = "*"
-      const condition = `user_id=${req.headers.user_id} AND Date(remainder) < '${formatDate}' AND outcomes IS NULL`
+      let condition = "";
+      // `user_id=${req.headers.user_id} AND lead_id=${req.headers.lead_id} AND Date(remainder) < '${formatDate}' AND outcomes IS NULL`
+      if (req.headers.user_id) { condition += "user_id=" + req.headers.user_id + " AND " }
+      if (req.headers.lead_id) { condition += " lead_id=" + req.headers.lead_id + " AND " }
+      condition += " Date(remainder) < '" + formatDate + "' AND outcomes IS NULL";
       let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
       console.log(query);
       if (query.success) {
@@ -649,7 +660,11 @@ const followUpList = async (req, res) => {
       const formatDate = moment(date).format('YYYY-MM-DD')
       const tblName = "tbl_followup"
       const parameter = "*"
-      const condition = `user_id=${req.headers.user_id} AND Date(remainder) > '${formatDate}'`
+      let condition = "";
+      // `user_id=${req.headers.user_id} AND lead_id=${req.headers.lead_id} AND Date(remainder) > '${formatDate}'`
+      if (req.headers.user_id) { condition += "user_id=" + req.headers.user_id + " AND " }
+      if (req.headers.lead_id) { condition += " lead_id=" + req.headers.lead_id + " AND " }
+      condition += " Date(remainder) > '" + formatDate + "'";
       let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
       if (query.success) {
         res.status(200).send({
@@ -668,7 +683,11 @@ const followUpList = async (req, res) => {
       const formatDate = moment(date).format('YYYY-MM-DD')
       const tblName = "tbl_followup"
       const parameter = "*"
-      const condition = `user_id=${req.headers.user_id} AND outcomes IS NOT NULL`
+      let condition = "";
+      // `user_id=${req.headers.user_id} AND lead_id=${req.headers.lead_id} AND outcomes IS NOT NULL`
+      if (req.headers.user_id) { condition += "user_id=" + req.headers.user_id + " AND " }
+      if (req.headers.lead_id) { condition += " lead_id=" + req.headers.lead_id + " AND " }
+      condition += " outcomes IS NOT NULL ";
       let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
       if (query.success) {
         res.status(200).send({
@@ -692,6 +711,50 @@ const followUpList = async (req, res) => {
     });
   }
 }
+const  activityHistory = async (req, res) => {
+  try {
+
+    let query = await commonService.sqlJoinQuery(`SELECT tbl_followup.description,tbl_followup.outcomes,tbl_followup.created_at, tbl_user.first_name as Name,tbl_followup.completed,tbl_notes.note_description,tbl_attachments.name from tbl_followup INNER JOIN tbl_user ON tbl_user.id = tbl_followup.user_id INNER JOIN tbl_notes ON tbl_followup.user_id = tbl_notes.id INNER JOIN tbl_attachments ON tbl_followup.id = tbl_attachments.project_id ORDER BY created_at ASC`)
+    console.log(query.result[0].name);
+    let data = query.result;
+    let newData = []
+    data.map((dat) => {
+      if (dat.name === "") {
+        newData.push(dat)
+      } else {
+        dat.description = "", dat.note_description = ""
+        let { ...others } = dat
+        newData.push(others)
+      }
+
+      if (dat.outcomes && dat.outcomes !== null) {
+        dat.completed = true;
+      } else {
+        dat.completed = false;
+      }
+    })
+    if (query.success) {
+      res.status(200).send({
+        status: 200,
+        data: newData,
+      });
+    } else {
+      res.status(500).send({
+        status: 500,
+        message: "No Record Found.",
+        error: query.error,
+      });
+    }
+
+  } catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+}
+
 
 const updateFollowUp = async (req, res) => {
   try {
@@ -873,5 +936,7 @@ module.exports = {
   industriesList,
   priorityList,
   leadsource,
-  followUpList
+  followUpList,
+  activityHistory
+  
 };

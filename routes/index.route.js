@@ -13,8 +13,8 @@ const router = express.Router();
 router.use('/auth', authRoutes);
 router.use('/dashboard', verifyToken, dashboard);
 router.use('/leaddetail',verifyToken, leaddetail)
-router.use('/lead',  verifyToken,leadRoutes);
-router.use('/note', verifyToken, noteRoutes);
+router.use('/lead', verifyToken, leadRoutes);
+router.use('/note',verifyToken, noteRoutes);
 router.use('/client', verifyToken, clientRoutes);
 router.use('/upload', uploadRoutes);
 
