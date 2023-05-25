@@ -43,6 +43,7 @@ const addClientInfo = async (req, res) => {
             } else {
                 parameters = {
                     user_id: payload.user_id,
+                    lead_id: payload.lead_id,
                     first_name: payload.first_name,
                     last_name: payload.last_name,
                     company: payload.company,
@@ -366,7 +367,32 @@ const updateClientProject = async (req, res) => {
         });
     }
 }
-
+const meettingBy_project = async (req,res) =>{
+try {
+        let tblName="tbl_followup"
+        let parameter="*"
+        let condition=""
+        const query = await commonService.sqlSelectQueryWithParametrs(tblName,parameter,condition)
+        if (query.success) {
+            res.status(200).send({
+              status: 200,
+              data: query.result
+            });
+          } else {
+            res.status(500).send({
+              status: 500,
+              message: "No Record Found.",
+              error: query.error,
+            });
+          }
+    } catch (e) {
+            res.status(500).send({
+            status: 500,
+            message: "Something went wrong!",
+            error: e,
+        });
+    }
+}
 const deleteClientProject = async (req, res) => {
     try {
         let id = req.params.id;
@@ -478,5 +504,6 @@ module.exports = {
     addClientProject,
     updateClientProject,
     deleteClientProject,
-    getProjectById
+    getProjectById,
+    meettingBy_project
 }
