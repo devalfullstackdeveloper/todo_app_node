@@ -146,6 +146,7 @@ const leadAdd = async (req, res) => {
 
     let parameters = {
       user_id: payload.user_id,
+      profile_img: payload.profile_img,
       first_name: payload.first_name,
       last_name: payload.last_name,
       company: payload.company,
@@ -603,6 +604,37 @@ const addFollowUp = async (req, res) => {
     });
   }
 }
+const followUpListBy_lead = async (req, res) => {
+  try {
+    let tblName = "tbl_followup"
+    let parameter = "*"
+    let condition = ""
+     if (req.headers.user_id) { condition += "user_id=" + req.headers.user_id + " AND " }
+     if (req.headers.lead_id) { condition += "lead_id=" + req.headers.lead_id + " AND " }
+     condition += " flag='" + 0 + "' ORDER BY remainder DESC";
+
+    let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
+    console.log(query);
+    if (query.success) {
+      res.status(200).send({
+        status: 200,
+        data: query.result
+      });
+    } else {
+      res.status(500).send({
+        status: 500,
+        message: "No Record Found.",
+        error: query.error,
+      });
+    }
+  } catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+}
 const followUpList = async (req, res) => {
   try {
     const params = req.params.type;
@@ -711,11 +743,13 @@ const followUpList = async (req, res) => {
     });
   }
 }
-const  activityHistory = async (req, res) => {
+const activityHistory = async (req, res) => {
   try {
 
     let query = await commonService.sqlJoinQuery(`SELECT tbl_followup.description,tbl_followup.outcomes,tbl_followup.created_at, tbl_user.first_name as Name,tbl_followup.completed,tbl_notes.note_description,tbl_attachments.name from tbl_followup INNER JOIN tbl_user ON tbl_user.id = tbl_followup.user_id INNER JOIN tbl_notes ON tbl_followup.user_id = tbl_notes.id INNER JOIN tbl_attachments ON tbl_followup.id = tbl_attachments.project_id ORDER BY created_at ASC`)
-    console.log(query.result[0].name);
+   if(req.headers.client_id || req.headers.project_id){
+     console.log(query.result); 
+   }
     let data = query.result;
     let newData = []
     data.map((dat) => {
@@ -937,6 +971,7 @@ module.exports = {
   priorityList,
   leadsource,
   followUpList,
-  activityHistory
-  
+  activityHistory,
+  followUpListBy_lead
+
 };
