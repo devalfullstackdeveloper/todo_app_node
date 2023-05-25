@@ -44,6 +44,7 @@ const addClientInfo = async (req, res) => {
                 parameters = {
                     user_id: payload.user_id,
                     lead_id: payload.lead_id,
+                    profile_img: payload.profile_img,
                     first_name: payload.first_name,
                     last_name: payload.last_name,
                     company: payload.company,
