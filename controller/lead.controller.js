@@ -238,6 +238,8 @@ const leadEdit = async (req, res) => {
     let parameters =
       "first_name= '" +
       req.body.first_name +
+      "' , profile_img= '" +
+      req.body.profile_img +
       "' , last_name = '" +
       req.body.last_name +
       "' ,  company = '" +
@@ -278,8 +280,7 @@ const leadEdit = async (req, res) => {
 
     let parameters1 = "Count(id) As count";
 
-    let condition1 = "id = '" + id + "'AND email='" +
-      payload.email +
+    let condition1 = "id = '" + id + 
       "' AND flag='" +
       0 +
       "' ";

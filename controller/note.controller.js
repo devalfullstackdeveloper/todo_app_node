@@ -7,10 +7,17 @@ const showNotes = async (req, res) => {
     let id = req.query.project_id;
     let tblName = "tbl_notes";
     let parameters = "*";
-    let condition = "";
-    if (id) { condition += "user_id=" + req.query.user_id + " AND project_id=" + id } else if(req.query.client_id) {
-      condition += "user_id=" + req.query.user_id + " AND client_id=" + req.query.client_id
+    let condition = "user_id=" + req.query.user_id;
+    // if (id) { condition += "user_id=" + req.query.user_id + " AND project_id=" + id } else if(req.query.client_id) {
+    //   condition += "user_id=" + req.query.user_id + " AND client_id=" + req.query.client_id
+    // }
+    if(req.query.lead_id){
+      condition += " AND lead_id=" + req.query.lead_id
     }
+    if(req.query.client_id && req.query.project_id){
+      condition += " AND client_id=" + req.query.client_id + " AND project_id=" + req.query.project_id
+    }
+    
     condition ? condition += " AND flag='" + 0 + "' " : condition += " flag='" + 0 + "' ";
     let queryResult = await commonService.sqlSelectQueryWithParametrs(
       tblName,
@@ -49,9 +56,9 @@ const noteAdd = async (req, res) => {
     if (notes_for == 1 || notes_for == 2 || notes_for == 3) {
       parameters = {
         note_description: payload.note_description,
-        client_id: payload.client_id,
+        client_id: payload.client_id ? payload.client_id : "",
         user_id: payload.user_id,
-        lead_id: payload.lead_id,
+        lead_id: payload.lead_id ? payload.lead_id : "",
         create_date: todayDate1,
         update_date: todayDate1,
         notes_for: notes_for,
@@ -144,6 +151,7 @@ const noteEdit = async (req, res) => {
     if (req.body.client_id) { parameters += "client_id= '" + req.body.client_id + "'," }
     if (req.body.user_id) { parameters += "user_id= '" + req.body.user_id + "'," }
     if (req.body.notes_for) { parameters += "notes_for= '" + req.body.notes_for + "'," }
+    if(req.body.project_id){ parameters += "project_id= '" + req.body.project_id + "',"}
     parameters += "  update_date = '" + todayDate1 + "' Where id = " + id + "";
 
     let tblName = "tbl_notes";
