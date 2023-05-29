@@ -6,6 +6,7 @@ const clientRoutes = require('./client.route');
 const uploadRoutes = require('./upload.route');
 const dashboard = require('./dashboard.route');
 const leaddetail=require('./leaddetail.route');
+const calllog=require('./calllog.route');
 
 const { verifyToken } = require('../middleware/verifyToken');
 
@@ -17,5 +18,6 @@ router.use('/lead', verifyToken, leadRoutes);
 router.use('/note',verifyToken, noteRoutes);
 router.use('/client', verifyToken, clientRoutes);
 router.use('/upload', uploadRoutes);
+router.use('/calllog', verifyToken, calllog)
 
 module.exports = router;

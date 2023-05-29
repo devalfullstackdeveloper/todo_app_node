@@ -51,6 +51,7 @@ const noteAdd = async (req, res) => {
         note_description: payload.note_description,
         client_id: payload.client_id,
         user_id: payload.user_id,
+        lead_id: payload.lead_id,
         create_date: todayDate1,
         update_date: todayDate1,
         notes_for: notes_for,
@@ -68,6 +69,8 @@ const noteAdd = async (req, res) => {
       payload.client_id +
       "' AND user_id='" +
       payload.user_id +
+      "' AND lead_id='" +
+      payload.lead_id +
       "' AND notes_for='" +
       notes_for +
       "'AND project_id='" +

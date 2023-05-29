@@ -116,43 +116,34 @@ const addDocument = async (req, res) => {
 }
 
 const getDocument = async (req, res) => {
-    try {
-        let query = `SELECT * FROM tbl_attachments WHERE flag = 0`;
-        let queryResult = await commonService.sqlJoinQuery(query);
-        let doc = [];
-        if (queryResult.result.length > 0) {
-            for (i = 0; i < queryResult.result.length; i++) {
-                if (fs.existsSync("./Attachments/" + queryResult.result[i].name)) {
-                    let fileData = {
-                        fileId: queryResult.result[i].id,
-                        file_for: queryResult.result[i].attachment_for,
-                        user_id: queryResult.result[i].user_id,
-                        client_id: queryResult.result[i].client_id,
-                        project_id: queryResult.result[i].project_id,
-                        fileName: queryResult.result[i].name,
-                        filePath: queryResult.result[i].path
-                    }
-                    doc.push(fileData);
-                }
-            }
-            if (doc) {
-                res.status(200).send({
-                    status: 200,
-                    message: doc,
-                });
-            } else {
-                res.status(500).send({
-                    status: 500,
-                    message: "There Doesn't Exist Any Document in Local Server.",
-                });
-            }
-        } else {
-            res.status(500).send({
-                status: 500,
-                message: "There Doesn't Exist Any Document.",
-            });
+    try{
+        let id = req.query.project_id;
+        let tblName = "tbl_attachments";
+        let parameters = "*";
+        let condition = "";
+        if (id) { condition += "user_id=" + req.query.user_id + " AND project_id=" + id } else if(req.query.client_id) {
+          condition += "user_id=" + req.query.user_id + " AND client_id=" + req.query.client_id
         }
-    } catch (e) {
+        condition ? condition += " AND flag='" + 0 + "' " : condition += " flag='" + 0 + "' ";
+        let queryResult = await commonService.sqlSelectQueryWithParametrs(
+          tblName,
+          parameters,
+          condition
+        );
+        if (queryResult.success) {
+          res.status(200).send({
+            status: 200,
+            data: queryResult.result,
+          });
+        } else {
+          res.status(500).send({
+            status: 500,
+            message: "Something went wrong!",
+            error: queryResult.error,
+          });
+        }
+    }
+    catch (e) {
         res.status(500).send({
             status: 500,
             message: "Something went wrong!",

@@ -14,7 +14,11 @@ router.get('/leadDelete/:id',leadController.leadDelete);
 router.get('/favourite/:id',leadController.favouriteButton);
 router.post('/add_followup', leadController.addFollowUp);
 router.get('/followUpList/:type', leadController.followUpList);
-router.get('/activityHistory',leadController.activityHistory)
+router.get('/followUpListBy_lead',leadController.followUpListBy_lead);
+router.post('/followUpList_Datewise',leadController.followUpList_Datewise);
+router.get('/lead_created_homePage',leadController.lead_created_homePage);
+router.get('/lead_converted',leadController.lead_converted);
+router.get('/activityHistory',leadController.activityHistory);
 router.post('/update_followup/:id', leadController.updateFollowUp);
 router.get('/priority_list/:event',leadController.priorityList);
 router.get('/industries_list/:event',leadController.industriesList);
