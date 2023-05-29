@@ -171,7 +171,8 @@ const updateClientInfo = async (req, res) => {
 
 const getClientList = async (req, res) => {
     try {
-        const query = `SELECT id, concat(first_name," ",last_name) as full_name, updated_at as Date, email, phone_no as phone FROM tbl_client WHERE flag = 0`
+        let id=req.query.user_id;
+        const query = `SELECT id, concat(first_name," ",last_name) as full_name, updated_at as Date, email, phone_no as phone FROM tbl_client WHERE user_id = ${id} AND flag = 0`
         let getList = await commonService.sqlJoinQuery(query);
         let data = [];
         getList.result.map(item => {
@@ -373,6 +374,9 @@ try {
         let tblName="tbl_followup"
         let parameter="*"
         let condition=""
+        if (req.headers.client_id) { condition += "client_id=" + req.headers.client_id + " AND " }
+        if (req.headers.project_id) { condition += "project_id=" + req.headers.project_id + " AND " }
+        condition += " flag='" + 0 + "' ORDER BY remainder DESC"
         const query = await commonService.sqlSelectQueryWithParametrs(tblName,parameter,condition)
         if (query.success) {
             res.status(200).send({

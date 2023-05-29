@@ -747,9 +747,10 @@ const activityHistory = async (req, res) => {
   try {
 
     let query = await commonService.sqlJoinQuery(`SELECT tbl_followup.description,tbl_followup.outcomes,tbl_followup.created_at, tbl_user.first_name as Name,tbl_followup.completed,tbl_notes.note_description,tbl_attachments.name from tbl_followup INNER JOIN tbl_user ON tbl_user.id = tbl_followup.user_id INNER JOIN tbl_notes ON tbl_followup.user_id = tbl_notes.id INNER JOIN tbl_attachments ON tbl_followup.id = tbl_attachments.project_id ORDER BY created_at ASC`)
-   if(req.headers.client_id || req.headers.project_id){
-     console.log(query.result); 
-   }
+  //  if(req.headers.client_id || req.headers.project_id){
+  //    console.log(query.result); 
+  //  }
+
     let data = query.result;
     let newData = []
     data.map((dat) => {
@@ -787,6 +788,91 @@ const activityHistory = async (req, res) => {
       error: e,
     });
   }
+}
+const followUpList_Datewise = async (req,res)=>{
+  try {
+        const date = new Date()
+        const c_date=date.toLocaleDateString();
+
+        let tblName="tbl_followup"
+        let parameter="*"
+        let condition="Date(remainder) = " + c_date + " AND user_id = " + req.headers.user_id ; 
+
+        let query= await commonService.sqlSelectQueryWithParametrs(tblName,parameter,condition)
+        if (query.success) {
+          res.status(200).send({
+            status: 200,
+            data: query.result
+          });
+        } else {
+          res.status(500).send({
+            status: 500,
+            message: "No Record Found.",
+            error: query.error,
+          });
+        }
+  
+      }catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+
+}
+const lead_created_homePage =async (req,res) =>{
+  try {
+        
+        let id=req.query.user_id
+        let query =await commonService.sqlJoinQuery(`SELECT tls.lead_source_name,CASE WHEN tl.countlead_source is null then 0 ELSE tl.countlead_source END AS COUNT from tbl_lead_source tls
+        LEFT JOIN (SELECT lead_source,COUNT(lead_source) as countlead_source from tbl_lead GROUP BY lead_source)tl ON tl.lead_source=tls.id ;`)
+      console.log(query);
+        if (query.success) {
+          res.status(200).send({
+            status: 200,
+            data: query.result
+          });
+        } else {
+          res.status(500).send({
+            status: 500,
+            message: "No Record Found.",
+            error: query.error,
+          });
+        }
+  
+  } catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+}
+const lead_converted =async (req,res)=>{
+
+    try {
+          let query= await commonService.sqlJoinQuery(`  SELECT u.id,concat(u.first_name," ",u.last_name) AS FullName,(SELECT COUNT(l.id ) FROM tbl_client as l WHERE l.user_id = u.id AND l.lead_id > 0) AS Total_Count FROM tbl_user AS u`)
+        if (query.success) {
+          res.status(200).send({
+            status: 200,
+            data: query.result
+          });
+        } else {
+          res.status(500).send({
+            status: 500,
+            message: "No Record Found.",
+            error: query.error,
+          });
+        }
+      
+    } catch (e) {
+      res.status(500).send({
+        status: 500,
+        message: "Something went wrong!",
+        error: e,
+      });
+    }
 }
 
 
@@ -972,6 +1058,10 @@ module.exports = {
   leadsource,
   followUpList,
   activityHistory,
-  followUpListBy_lead
+  followUpListBy_lead,
+  followUpList_Datewise,
+  lead_created_homePage,
+  lead_converted
+  
 
 };
