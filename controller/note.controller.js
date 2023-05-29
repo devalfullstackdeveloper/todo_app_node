@@ -18,7 +18,7 @@ const showNotes = async (req, res) => {
       condition += " AND client_id=" + req.query.client_id + " AND project_id=" + req.query.project_id
     }
     
-    condition ? condition += " AND flag='" + 0 + "' " : condition += " flag='" + 0 + "' ";
+    condition += " AND flag='0' ";
     let queryResult = await commonService.sqlSelectQueryWithParametrs(
       tblName,
       parameters,
