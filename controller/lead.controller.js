@@ -114,7 +114,7 @@ const showlead = async (req, res) => {
 const leadsource = async (req, res) => {
   try {
     const tblName = "tbl_lead_source"
-    const parameters = "id,lead_sources_name,status"
+    const parameters = "id,lead_source_name,status"
     const condition = ""
 
     let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameters, condition)
@@ -762,7 +762,7 @@ const activityHistory = async (req, res) => {
         newData.push(others)
       }
 
-      if (dat.outcomes && dat.outcomes !== null) {
+      if (dat.outcomes && dat.outcomes !== null) { 
         dat.completed = true;
       } else {
         dat.completed = false;
