@@ -171,8 +171,10 @@ const updateClientInfo = async (req, res) => {
 
 const getClientList = async (req, res) => {
     try {
-        let id=req.query.user_id;
-        const query = `SELECT id, concat(first_name," ",last_name) as full_name, updated_at as Date, email, phone_no as phone FROM tbl_client WHERE user_id = ${id} AND flag = 0`
+        let id=req.query.user_id; 
+        let query = `SELECT id, concat(first_name," ",last_name) as full_name, updated_at as Date, email, phone_no as phone FROM tbl_client WHERE flag = 0`
+        if(id){ query +=" AND user_id="+id+""}
+        console.log(query);
         let getList = await commonService.sqlJoinQuery(query);
         let data = [];
         getList.result.map(item => {
