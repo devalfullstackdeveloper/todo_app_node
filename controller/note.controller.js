@@ -4,27 +4,20 @@ const commonService = require("../services/common.services");
 
 const showNotes = async (req, res) => {
   try {
-    let id = req.query.project_id;
-    let tblName = "tbl_notes";
-    let parameters = "*";
-    let condition = "user_id=" + req.query.user_id;
-    // if (id) { condition += "user_id=" + req.query.user_id + " AND project_id=" + id } else if(req.query.client_id) {
-    //   condition += "user_id=" + req.query.user_id + " AND client_id=" + req.query.client_id
-    // }
-    if(req.query.lead_id){
-      condition += " AND lead_id=" + req.query.lead_id
-    }
-    if(req.query.client_id && req.query.project_id){
-      condition += " AND client_id=" + req.query.client_id + " AND project_id=" + req.query.project_id
-    }
-    
-    condition += " AND flag='0' ";
-    let queryResult = await commonService.sqlSelectQueryWithParametrs(
-      tblName,
-      parameters,
-      condition
-    );
-    if (queryResult.success) {
+      let uid=req.query.user_id;
+      let pid=req.query.project_id;
+      let lid=req.query.lead_id;
+      let cid=req.query.client_id;
+      let queryResult1 = `SELECT n.*,concat(l.first_name," ",l.last_name) AS Lead_Name from tbl_notes AS n JOIN tbl_lead AS l ON n.lead_id = l.id WHERE 1=1`;
+      if(uid){ queryResult1+= " AND n.user_id="+uid+""}
+      if(pid){ queryResult1+= " AND n.project_id="+pid+""}
+      if(lid){ queryResult1+= " AND n.lead_id="+lid+""}
+      if(cid){ queryResult1+= " AND n.client_id="+cid+""}
+      console.log(queryResult1);
+      console.log(uid);
+      let queryResult= await commonService.sqlJoinQuery(queryResult1)
+  
+      if (queryResult.success) {
       res.status(200).send({
         status: 200,
         data: queryResult.result,

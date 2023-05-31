@@ -95,6 +95,7 @@ const updateClientInfo = async (req, res) => {
         const updated_at = moment().format("YYYY-MM-DD hh:mm:ss").toString();
         let parameters = "";
         if (req.body.first_name) { parameters += "first_name= '" + req.body.first_name + "'," }
+        if (req.body.user_id) { parameters += "user_id = '" + req.body.user_id + "'," }
         if (req.body.last_name) { parameters += " last_name = '" + req.body.last_name + "'," }
         if (req.body.company) { parameters += "  company = '" + req.body.company + "'," }
         if (req.body.title) { parameters += "  title = '" + req.body.title + "'," }
