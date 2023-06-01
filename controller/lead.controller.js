@@ -8,6 +8,7 @@ const { disable } = require("../server");
 const showlead = async (req, res) => {
   try {
     let query;
+    let searchBy = req.body.searchBy;
     let dataLength = 0;
     let filtertype = req.body.filtertype;
     let sortType = req.body.sortType;
@@ -46,7 +47,13 @@ const showlead = async (req, res) => {
     else if (filtertype == 5) {
       query = user_id ? `SELECT * FROM tbl_lead WHERE favourite='Yes' AND flag= 0 AND user_id = ${user_id}` : `SELECT * FROM tbl_lead WHERE favourite='Yes' AND flag= 0`;
     }
-
+    if(searchBy){
+      if(user_id){
+        query += ` AND concat(first_name," ",last_name) like "%${searchBy}%" `;
+      }else{
+        query += ` AND concat(first_name," ",last_name," ",assigned_employee) like "%${searchBy}%" `;
+      }
+    }
     if (sortBy == 'None') {
       if (sortType == 'asc') {
         query = `${query} ORDER BY create_date ASC`;
@@ -81,7 +88,6 @@ const showlead = async (req, res) => {
     let startPage = (pageNo * pageLength) - pageLength;
 
     query = `${query} LIMIT ${startPage},${pageLength}`;
-
     let queryResult = await commonService.sqlJoinQuery(query);
 
     let leadslist1 = [];
