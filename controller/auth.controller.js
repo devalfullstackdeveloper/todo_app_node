@@ -181,7 +181,7 @@ const resetPassword = async (req, res) => {
   try {
     let validationRule = {
       email: "required|email",
-     // oldPassword: "required|string|min:8|max:8|passwordRegx",
+      // oldPassword: "required|string|min:8|max:8|passwordRegx",
       newPassword: "required|string|min:8|max:8|passwordRegx"
     };
     let isvalidated = await commonService.validateRequest(
@@ -209,36 +209,36 @@ const resetPassword = async (req, res) => {
         //   queryResult.result[0].id
         // );
         // if (password == true) {
-          let newPass = req.body.newPassword;
-          const salt = await bcrypt.genSalt(10);
-          let encryptPassword = await bcrypt.hash(newPass, salt);
-          let newPassword = encryptPassword;
+        let newPass = req.body.newPassword;
+        const salt = await bcrypt.genSalt(10);
+        let encryptPassword = await bcrypt.hash(newPass, salt);
+        let newPassword = encryptPassword;
 
-          let tblName = "tbl_user";
-          let parameters =
-            "password = '" +
-            newPassword +
-            "' Where id = '" +
-            queryResult.result[0].id +
-            "'";
-          let resetPassword = await commonService.sqlUpdateQueryWithParametrs(
-            tblName,
-            parameters
-          );
+        let tblName = "tbl_user";
+        let parameters =
+          "password = '" +
+          newPassword +
+          "' Where id = '" +
+          queryResult.result[0].id +
+          "'";
+        let resetPassword = await commonService.sqlUpdateQueryWithParametrs(
+          tblName,
+          parameters
+        );
 
-          if (!resetPassword.success) {
-            res.status(500).send({
-              status: 500,
-              message: "Something went wrong!",
-              error: resetPassword.error,
-            });
-          } else {
+        if (!resetPassword.success) {
+          res.status(500).send({
+            status: 500,
+            message: "Something went wrong!",
+            error: resetPassword.error,
+          });
+        } else {
 
-            res.status(200).send({
-              status: 200,
-              message: "Password reset successfully",
-            });
-          }
+          res.status(200).send({
+            status: 200,
+            message: "Password reset successfully",
+          });
+        }
         // } else {
         //   res.status(500).send({
         //     status: 401,
@@ -337,7 +337,9 @@ const editUser = async (req, res) => {
 
 const userList = async (req, res) => {
   try {
-    const query = `SELECT id,first_name,last_name, profile_img as profile_path, email, phone_no, date_of_birth, street, city,zipcode ,(SELECT count(id) FROM tbl_lead WHERE user_id = tbl_user.id ) as total_leads FROM tbl_user WHERE flag = 0`
+    let id = req.query.id;
+    let query = `SELECT id,first_name,last_name, profile_img as profile_path, email, phone_no, date_of_birth, street, city,zipcode ,(SELECT count(id) FROM tbl_lead WHERE user_id = tbl_user.id ) as total_leads FROM tbl_user WHERE flag = 0`
+    if (id) { query += " AND tbl_user.id=" + id + "" }
     let getList = await commonService.sqlJoinQuery(query);
     if (getList.result.length > 0) {
       res.status(200).send({
