@@ -1,4 +1,4 @@
-const moment = require("moment/moment");
+    const moment = require("moment/moment");
 const commonService = require("../services/common.services");
 const multer = require("multer");
 const fs = require("fs");
@@ -46,9 +46,9 @@ const uploadDocument = multer({
 
 const addDocument = async (req, res) => {
     try {
-        const { attachment_for, user_id, client_id, project_id } = req.body;
+        const { attachment_for, user_id, client_id, project_id , lead_id} = req.body;
         const doc = req.files;
-        if (user_id && client_id) {
+        if ((user_id && client_id && project_id) || (user_id && lead_id)) {
             if (!doc || !(attachment_for == 1 || attachment_for == 2 || attachment_for == 3)) {
                 res.status(412).send({
                     status: 412,
@@ -68,6 +68,7 @@ const addDocument = async (req, res) => {
                             user_id,
                             client_id,
                             project_id,
+                            lead_id,
                             path: url,
                             created_at: moment().format("YYYY-MM-DD hh:mm:ss").toString(),
                             updated_at: moment().format("YYYY-MM-DD hh:mm:ss").toString()
@@ -77,16 +78,16 @@ const addDocument = async (req, res) => {
                             let queryResult = await commonService.sqlQueryWithParametrs(
                                 tblName,
                                 Parameter
-                            );
-                            if (queryResult.result.affectedRows > 0) {
-                                res.status(200).send({
-                                    status: 200,
-                                    message: "Documents successfully added",
-                                    documentUrl: docUrl
-                                });
-                            } else {
-                                res.status(500).send({
-                                    status: 500,
+                                );
+                                if (queryResult.result.affectedRows > 0) {
+                                    res.status(200).send({
+                                        status: 200,
+                                        message: "Documents successfully added",
+                                        documentUrl: docUrl
+                                    });
+                                } else {
+                                    res.status(500).send({
+                                        status: 500,
                                     message: "Something went wrong !",
                                 });
                             }
@@ -117,12 +118,11 @@ const addDocument = async (req, res) => {
 
 const getDocument = async (req, res) => {
     try{
-        let id = req.query.project_id;
         let tblName = "tbl_attachments";
         let parameters = "*";
         let condition = "";
-        if (id) { condition += "user_id=" + req.query.user_id + " AND project_id=" + id } else if(req.query.client_id) {
-          condition += "user_id=" + req.query.user_id + " AND client_id=" + req.query.client_id
+        if (req.query.user_id && req.query.lead_id) { condition += "user_id=" + req.query.user_id + " AND lead_id=" +  req.query.lead_id} else if(req.query.user_id && req.query.client_id && req.query.project_id) {
+          condition += "user_id=" + req.query.user_id + " AND client_id=" + req.query.client_id+ " AND project_id=" + req.query.project_id
         }
         condition ? condition += " AND flag='" + 0 + "' " : condition += " flag='" + 0 + "' ";
         let queryResult = await commonService.sqlSelectQueryWithParametrs(
