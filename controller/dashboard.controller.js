@@ -6,10 +6,10 @@ const { query } = require("express");
     try{
     
         let query = await commonService.sqlJoinQuery(`SELECT 
-        (SELECT COUNT(*) FROM tbl_lead) as Total_lead,
-        (SELECT COUNT(*) FROM tbl_project) as Total_project,
-        (SELECT COUNT(*) FROM tbl_client) as Total_client,
-        (SELECT COUNT(*) FROM tbl_user) as Total_user`);
+        (SELECT COUNT(*) FROM tbl_lead  where flag = 0) as Total_lead,
+        (SELECT COUNT(*) FROM tbl_project where flag = 0) as Total_project,
+        (SELECT COUNT(*) FROM tbl_client where flag = 0) as Total_client,
+        (SELECT COUNT(*) FROM tbl_user where flag = 0) as Total_user`);
        if (query.success) 
        {
         res.status(200).send({

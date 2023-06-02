@@ -239,7 +239,9 @@ const addClientProject = async (req, res) => {
             user_id: "required|string",
             client_id: "required|string",
             name: "required|string",
-            project_type: "required|string",
+            project_month_rate:"string",
+            project_hour_rate:"string",
+            project_type:"required|string",
             project_status: "required|string",
             related_to: "required|string",
         };
@@ -306,9 +308,11 @@ const updateClientProject = async (req, res) => {
         const updated_at = moment().format("YYYY-MM-DD hh:mm:ss").toString();
         let parameters = "";
         if (req.body.client_id) { parameters += "client_id= '" + req.body.client_id + "'," }
-        if (req.body.name) { parameters += "  name = '" + req.body.name + "'" }
+        if (req.body.name) { parameters += "  name = '" + req.body.name + "'," }
         if (req.body.project_type) { parameters += "   project_type = '" + req.body.project_type + "'," }
-        if (req.body.project_value) { parameters += "   project_value = '" + req.body.project_value + "'," }
+        if (req.body.project_value) { parameters += "  project_value = '" + req.body.project_value + "'," }
+        if (req.body.project_hour_rate) { parameters +="  project_hour_rate = '" + req.body.project_hour_rate + "',"}
+        if (req.body.project_month_rate) { parameters +="  project_month_rate = '" + req.body.project_month_rate + "',"}
         if (req.body.enter_hours) { parameters += "   enter_hours = '" + req.body.enter_hours + "'," }
         if (req.body.enter_months) { parameters += "   enter_months = '" + req.body.enter_months + "'," }
         if (req.body.project_status) { parameters += "   project_status = '" + req.body.project_status + "'," }
