@@ -13,6 +13,7 @@ router.post('/leadEdit/:id',leadController.leadEdit);
 router.get('/leadDelete/:id',leadController.leadDelete);
 router.get('/favourite/:id',leadController.favouriteButton);
 router.post('/add_followup', leadController.addFollowUp);
+router.get('/followUpList', leadController.followUpList);
 router.get('/followUpList/:type', leadController.followUpList);
 router.get('/followUpListBy_lead',leadController.followUpListBy_lead);
 router.post('/followUpList_Datewise',leadController.followUpList_Datewise);

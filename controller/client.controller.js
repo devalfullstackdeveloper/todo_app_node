@@ -239,11 +239,15 @@ const addClientProject = async (req, res) => {
             user_id: "required|string",
             client_id: "required|string",
             name: "required|string",
+            project_type:"required|string",
             project_month_rate:"string",
             project_hour_rate:"string",
-            project_type:"required|string",
+            project_value:"required|string",
+            enter_hours:"string",
+            enter_months:"string",
             project_status: "required|string",
             related_to: "required|string",
+            description:"required|string"
         };
         let isvalidated = await commonService.validateRequest(
             req.body,

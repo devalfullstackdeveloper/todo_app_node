@@ -47,10 +47,10 @@ const showlead = async (req, res) => {
     else if (filtertype == 5) {
       query = user_id ? `SELECT * FROM tbl_lead WHERE favourite='Yes' AND flag= 0 AND user_id = ${user_id}` : `SELECT * FROM tbl_lead WHERE favourite='Yes' AND flag= 0`;
     }
-    if(searchBy){
-      if(user_id){
+    if (searchBy) {
+      if (user_id) {
         query += ` AND concat(first_name," ",last_name) like "%${searchBy}%" `;
-      }else{
+      } else {
         query += ` AND concat(first_name," ",last_name," ",assigned_employee) like "%${searchBy}%" `;
       }
     }
@@ -741,6 +741,26 @@ const followUpList = async (req, res) => {
         });
       }
 
+    }else{
+      const tblName ="tbl_followup"
+      const parameter="*"
+      const condition=""
+
+      let query = await commonService.sqlSelectQueryWithParametrs(tblName,parameter,condition)
+
+      if (query.success) {
+        res.status(200).send({
+          status: 200,
+          data: query.result
+        });
+      } else {
+        res.status(500).send({
+          status: 500,
+          message: "No Record Found.",
+          error: query.error,
+        });
+      }
+
     }
   } catch (e) {
     res.status(500).send({
@@ -831,10 +851,13 @@ const followUpList_Datewise = async (req, res) => {
 const lead_created_homePage = async (req, res) => {
   try {
 
-    let id = req.query.user_id
-    let query = await commonService.sqlJoinQuery(`SELECT tls.lead_source_name,CASE WHEN tl.countlead_source is null then 0 ELSE tl.countlead_source END AS COUNT from tbl_lead_source tls
-        LEFT JOIN (SELECT lead_source,COUNT(lead_source) as countlead_source from tbl_lead GROUP BY lead_source)tl ON tl.lead_source=tls.id ;`)
-    console.log(query);
+    const id = req.query.user_id
+    let  payload =req.body
+    let from_to ={
+      from_date : payload.from_date,
+      to_date : payload.to_date
+    }
+    let query = await commonService.sqlJoinQuery(`SELECT tls.lead_source_name,CASE WHEN tl.countlead_source is null then 0 ELSE tl.countlead_source END AS COUNT from tbl_lead_source tls LEFT JOIN (SELECT lead_source,COUNT(lead_source) as countlead_source from tbl_lead  WHERE  tbl_lead.user_id = ${id} AND tbl_lead.create_date BETWEEN ${from_to.from_date} AND ${from_to.to_date} GROUP BY lead_source)tl ON tl.lead_source=tls.id ;`)
     if (query.success) {
       res.status(200).send({
         status: 200,
@@ -858,21 +881,21 @@ const lead_created_homePage = async (req, res) => {
 }
 const lead_project = async (req, res) => {
   try {
-      let id=req.query.user_id;
-      let query= await commonService.sqlJoinQuery(`SELECT COUNT(id),MONTH(created_at) FROM tbl_project GROUP BY MONTH(created_at)`)
-      if(id){ " WHERE user_id=" +id}
-      if (query.success) {
-        res.status(200).send({
-          status: 200,
-          data: query.result
-        });
-      } else {
-        res.status(500).send({
-          status: 500,
-          message: "No Record Found.",
-          error: query.error,
-        });
-      }
+    let id = req.query.user_id;
+    let query = await commonService.sqlJoinQuery(`SELECT COUNT(id) AS ID,MONTH(created_at) AS MONTH  FROM tbl_project GROUP BY MONTH(created_at)`)
+    if (id) { " WHERE user_id=" + id }
+    if (query.success) {
+      res.status(200).send({
+        status: 200,
+        data: query.result
+      });
+    } else {
+      res.status(500).send({
+        status: 500,
+        message: "No Record Found.",
+        error: query.error,
+      });
+    }
 
   } catch (e) {
     res.status(500).send({
