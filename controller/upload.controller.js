@@ -19,7 +19,7 @@ const checkDir = async (req, res, next) => {
     }
     return next();
 }
-
+const maxSize = 20 * 1024 * 1024;
 const uploadDocument = multer({
     storage: multer.diskStorage({
         destination: function (req, file, cb) {
@@ -31,6 +31,7 @@ const uploadDocument = multer({
             cb(null, result + path.extname(file.originalname).toLowerCase());
         },
     }),
+    limits: {fileSize: maxSize},
     fileFilter: function (req, file, cb) {
         var filetypes = ".exe";
         var extname = path.extname(file.originalname).toLowerCase();
@@ -48,11 +49,12 @@ const addDocument = async (req, res) => {
     try {
         const { attachment_for, user_id, client_id, project_id , lead_id} = req.body;
         const doc = req.files;
+        console.log(doc);
         if ((user_id && client_id && project_id) || (user_id && lead_id)) {
             if (!doc || !(attachment_for == 1 || attachment_for == 2 || attachment_for == 3)) {
                 res.status(412).send({
                     status: 412,
-                    message: "Document not found or type on defined"
+                    message: "Document not found or type on defined",
                 });
             } else {
                 let docUrl = [];
@@ -69,6 +71,7 @@ const addDocument = async (req, res) => {
                             client_id,
                             project_id,
                             lead_id,
+                            attachment_size:((doc[i].size)/(1024*1024)),
                             path: url,
                             created_at: moment().format("YYYY-MM-DD hh:mm:ss").toString(),
                             updated_at: moment().format("YYYY-MM-DD hh:mm:ss").toString()
@@ -130,6 +133,12 @@ const getDocument = async (req, res) => {
           parameters,
           condition
         );
+        let data = queryResult.result;
+        data.map(e=>{
+            if(e.attachment_size && e.attachment_size != ""){
+                e.attachment_size +=" Mb";
+            }
+        })
         if (queryResult.success) {
           res.status(200).send({
             status: 200,
