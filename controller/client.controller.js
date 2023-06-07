@@ -9,7 +9,7 @@ const addClientInfo = async (req, res) => {
             first_name: "required|string",
             last_name: "required|string",
             company: "required|string",
-            client_status: "required|string", 
+            client_status: "required|string",
         };
         let isvalidated = await commonService.validateRequest(
             req.body,
@@ -24,13 +24,12 @@ const addClientInfo = async (req, res) => {
         } else {
             let tblName = "tbl_client";
             let parameters = "*";
-            let condition = "user_id = '" + payload.user_id + "' AND email = '" + payload.email +"' AND phone_no = '" + payload.phone_no + "' AND company = '" + payload.company + "' AND flag = 0";
+            let condition = "user_id = '" + payload.user_id + "' AND email = '" + payload.email + "' AND phone_no = '" + payload.phone_no + "' AND company = '" + payload.company + "' AND flag = 0";
             let queryResult = await commonService.sqlSelectQueryWithParametrs(
                 tblName,
                 parameters,
                 condition
             );
-            console.log(queryResult.result);
             if (queryResult.success && queryResult.result.length > 0) {
                 res.status(412).send({
                     status: 412,
@@ -175,18 +174,16 @@ const getClientList = async (req, res) => {
     try {
         let query;
         let searchBy = req.body.searchBy;
-       // let id=req.query.user_id;
+        // let id=req.query.user_id;
         let pageNo = req.body.pageNo;
         let pageLength = req.body.pageLength;
 
-        query = `SELECT id, concat(first_name," ",last_name) as full_name, updated_at as Date, email, phone_no as phone FROM tbl_client WHERE flag = 0` 
-        if(searchBy){
-                 query+=` AND concat(first_name," ",last_name) like "%${searchBy}%"`;
-           }
-        //if(id){ query +=" AND user_id="+id+""}
-        console.log(query);
+        query = `SELECT id, concat(first_name," ",last_name) as full_name, updated_at as Date, email, phone_no as phone FROM tbl_client WHERE flag = 0`
+        if (searchBy) {
+            query += ` AND concat(first_name," ",last_name) like "%${searchBy}%"`;
+        }
         let startPage = (pageNo * pageLength) - pageLength;
-        query =` ${query} LIMIT ${startPage},${pageLength}`;
+        query = ` ${query} LIMIT ${startPage},${pageLength}`;
         let getList = await commonService.sqlJoinQuery(query);
         let data = [];
         getList.result.map(item => {
@@ -206,10 +203,10 @@ const getClientList = async (req, res) => {
                 status: 500,
                 message: "There Is No Record Found"
             });
-            
+
         }
 
-        
+
     } catch (e) {
         res.status(500).send({
             status: 500,
@@ -252,15 +249,15 @@ const addClientProject = async (req, res) => {
             user_id: "required|string",
             client_id: "required|string",
             name: "required|string",
-            project_type:"required|string",
-            project_month_rate:"string",
-            project_hour_rate:"string",
-            project_value:"required|string",
-            enter_hours:"string",
-            enter_months:"string",
+            project_type: "required|string",
+            project_month_rate: "string",
+            project_hour_rate: "string",
+            project_value: "required|string",
+            enter_hours: "string",
+            enter_months: "string",
             project_status: "required|string",
             related_to: "required|string",
-            description:"required|string"
+            description: "required|string"
         };
         let isvalidated = await commonService.validateRequest(
             req.body,
@@ -328,8 +325,8 @@ const updateClientProject = async (req, res) => {
         if (req.body.name) { parameters += "  name = '" + req.body.name + "'," }
         if (req.body.project_type) { parameters += "   project_type = '" + req.body.project_type + "'," }
         if (req.body.project_value) { parameters += "  project_value = '" + req.body.project_value + "'," }
-        if (req.body.project_hour_rate) { parameters +="  project_hour_rate = '" + req.body.project_hour_rate + "',"}
-        if (req.body.project_month_rate) { parameters +="  project_month_rate = '" + req.body.project_month_rate + "',"}
+        if (req.body.project_hour_rate) { parameters += "  project_hour_rate = '" + req.body.project_hour_rate + "'," }
+        if (req.body.project_month_rate) { parameters += "  project_month_rate = '" + req.body.project_month_rate + "'," }
         if (req.body.enter_hours) { parameters += "   enter_hours = '" + req.body.enter_hours + "'," }
         if (req.body.enter_months) { parameters += "   enter_months = '" + req.body.enter_months + "'," }
         if (req.body.project_status) { parameters += "   project_status = '" + req.body.project_status + "'," }
@@ -393,29 +390,29 @@ const updateClientProject = async (req, res) => {
         });
     }
 }
-const meettingBy_project = async (req,res) =>{
-try {
-        let tblName="tbl_followup"
-        let parameter="*"
-        let condition=""
+const meettingBy_project = async (req, res) => {
+    try {
+        let tblName = "tbl_followup"
+        let parameter = "*"
+        let condition = ""
         if (req.headers.client_id) { condition += "client_id=" + req.headers.client_id + " AND " }
         if (req.headers.project_id) { condition += "project_id=" + req.headers.project_id + " AND " }
         condition += " flag='" + 0 + "' ORDER BY remainder DESC"
-        const query = await commonService.sqlSelectQueryWithParametrs(tblName,parameter,condition)
+        const query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
         if (query.success) {
             res.status(200).send({
-              status: 200,
-              data: query.result
+                status: 200,
+                data: query.result
             });
-          } else {
+        } else {
             res.status(500).send({
-              status: 500,
-              message: "No Record Found.",
-              error: query.error,
+                status: 500,
+                message: "No Record Found.",
+                error: query.error,
             });
-          }
+        }
     } catch (e) {
-            res.status(500).send({
+        res.status(500).send({
             status: 500,
             message: "Something went wrong!",
             error: e,
