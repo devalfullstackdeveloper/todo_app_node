@@ -9,7 +9,7 @@ const addClientInfo = async (req, res) => {
             first_name: "required|string",
             last_name: "required|string",
             company: "required|string",
-            client_status: "required|string",
+            client_status: "required|string", 
         };
         let isvalidated = await commonService.validateRequest(
             req.body,
@@ -24,12 +24,13 @@ const addClientInfo = async (req, res) => {
         } else {
             let tblName = "tbl_client";
             let parameters = "*";
-            let condition = "user_id = '" + payload.user_id + "' AND email = '" + payload.email + "' AND first_name = '" + payload.first_name + "' AND first_name = '" + payload.first_name + "' AND company = '" + payload.company + "' AND flag = 0";
+            let condition = "user_id = '" + payload.user_id + "' AND email = '" + payload.email +"' AND phone_no = '" + payload.phone_no + "' AND company = '" + payload.company + "' AND flag = 0";
             let queryResult = await commonService.sqlSelectQueryWithParametrs(
                 tblName,
                 parameters,
                 condition
             );
+            console.log(queryResult.result);
             if (queryResult.success && queryResult.result.length > 0) {
                 res.status(412).send({
                     status: 412,
@@ -172,10 +173,20 @@ const updateClientInfo = async (req, res) => {
 
 const getClientList = async (req, res) => {
     try {
-        let id=req.query.user_id; 
-        let query = `SELECT id, concat(first_name," ",last_name) as full_name, updated_at as Date, email, phone_no as phone FROM tbl_client WHERE flag = 0`
-        if(id){ query +=" AND user_id="+id+""}
+        let query;
+        let searchBy = req.body.searchBy;
+       // let id=req.query.user_id;
+        let pageNo = req.body.pageNo;
+        let pageLength = req.body.pageLength;
+
+        query = `SELECT id, concat(first_name," ",last_name) as full_name, updated_at as Date, email, phone_no as phone FROM tbl_client WHERE flag = 0` 
+        if(searchBy){
+                 query+=` AND concat(first_name," ",last_name) like "%${searchBy}%"`;
+           }
+        //if(id){ query +=" AND user_id="+id+""}
         console.log(query);
+        let startPage = (pageNo * pageLength) - pageLength;
+        query =` ${query} LIMIT ${startPage},${pageLength}`;
         let getList = await commonService.sqlJoinQuery(query);
         let data = [];
         getList.result.map(item => {
@@ -193,10 +204,12 @@ const getClientList = async (req, res) => {
         } else {
             res.status(500).send({
                 status: 500,
-                message: "Something went wrong!",
-                error: getList.error,
+                message: "There Is No Record Found"
             });
+            
         }
+
+        
     } catch (e) {
         res.status(500).send({
             status: 500,
