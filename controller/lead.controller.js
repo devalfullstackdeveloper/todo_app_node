@@ -481,7 +481,6 @@ const favouriteButton = async (req, res) => {
 //       condition1
 //     );
 
-//     console.log(queryResult1.result);
 
 
 //     if (queryResult1.success) {
@@ -543,7 +542,6 @@ const addFollowUp = async (req, res) => {
       lead_id: "required|string",
       remainder: "required|string",
       related_to: "required|string",
-      related_to: "required|string"
     };
     let isvalidated = await commonService.validateRequest(
       req.body,
@@ -576,18 +574,9 @@ const addFollowUp = async (req, res) => {
           },
         });
       } else {
-        parameters = {
-          user_id: payload.user_id,
-          lead_id: payload.lead_id,
-          remainder: payload.remainder,
-          description: payload.description,
-          link: payload.link,
-          related_to: payload.related_to,
-          attendees: payload.attendees
-        };
         let queryResult = await commonService.sqlQueryWithParametrs(
           tblName,
-          parameters
+          req.body
         );
         if (queryResult.success) {
           res.status(200).send({
@@ -621,7 +610,6 @@ const followUpListBy_lead = async (req, res) => {
     condition += " flag='" + 0 + "' ORDER BY remainder DESC";
 
     let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
-    console.log(query);
     if (query.success) {
       res.status(200).send({
         status: 200,
@@ -645,17 +633,26 @@ const followUpListBy_lead = async (req, res) => {
 const followUpList = async (req, res) => {
   try {
     const params = req.params.type;
-    if (params == "today") {
+    if (params == "1") {
       const date = new Date()
       const formatDate = moment(date).format('YYYY-MM-DD')
       const tblName = "tbl_followup"
       const parameter = "*"
-      let condition = ""; //= req.headers.user_id ? "user_id="+req.headers.user_id+" AND" : " " + req.headers.lead_id ? "lead_id="+req.headers.lead_id+" AND" : " " + "Date(remainder) = '" + formatDate +"'";
+      let condition = "";
       if (req.headers.user_id) { condition += "user_id=" + req.headers.user_id + " AND " }
       if (req.headers.lead_id) { condition += " lead_id=" + req.headers.lead_id + " AND " }
+      if (req.headers.client_id) { condition += " client_id=" + req.headers.client_id + " AND " }
+      if (req.headers.project_id) { condition += " project_id=" + req.headers.project_id + " AND " }
+      let type;
+      if (req.headers.user_id && req.headers.project_id && req.headers.client_id) {
+        type = 2;
+      } else if (req.headers.user_id && req.headers.lead_id) {
+        type = 1;
+      }
       condition += " Date(remainder) = '" + formatDate + "'";
+
+      condition += type ? `AND followup_for = ${type}` : "";
       // const condition = `user_id=${req.headers.user_id} AND lead_id=${req.headers.lead_id} AND Date(remainder) ='${formatDate}'`
-      console.log(condition);
       let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
       if (query.success) {
         res.status(200).send({
@@ -669,7 +666,7 @@ const followUpList = async (req, res) => {
           error: query.error,
         });
       }
-    } else if (params == "overdue") {
+    } else if (params == "2") {
       const date = new Date()
       const formatDate = moment(date).format('YYYY-MM-DD')
       const tblName = "tbl_followup"
@@ -678,9 +675,17 @@ const followUpList = async (req, res) => {
       // `user_id=${req.headers.user_id} AND lead_id=${req.headers.lead_id} AND Date(remainder) < '${formatDate}' AND outcomes IS NULL`
       if (req.headers.user_id) { condition += "user_id=" + req.headers.user_id + " AND " }
       if (req.headers.lead_id) { condition += " lead_id=" + req.headers.lead_id + " AND " }
+      if (req.headers.client_id) { condition += " client_id=" + req.headers.client_id + " AND " }
+      if (req.headers.project_id) { condition += " project_id=" + req.headers.project_id + " AND " }
+      let type;
+      if (req.headers.user_id && req.headers.project_id && req.headers.client_id) {
+        type = 2;
+      } else if (req.headers.user_id && req.headers.lead_id) {
+        type = 1;
+      }
       condition += " Date(remainder) < '" + formatDate + "' AND outcomes IS NULL";
+      condition += type ? ` AND followup_for = ${type}` : "";
       let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
-      console.log(query);
       if (query.success) {
         res.status(200).send({
           status: 200,
@@ -694,7 +699,7 @@ const followUpList = async (req, res) => {
         });
       }
 
-    } else if (params == "upcoming") {
+    } else if (params == "3") {
       const date = new Date()
       const formatDate = moment(date).format('YYYY-MM-DD')
       const tblName = "tbl_followup"
@@ -703,7 +708,16 @@ const followUpList = async (req, res) => {
       // `user_id=${req.headers.user_id} AND lead_id=${req.headers.lead_id} AND Date(remainder) > '${formatDate}'`
       if (req.headers.user_id) { condition += "user_id=" + req.headers.user_id + " AND " }
       if (req.headers.lead_id) { condition += " lead_id=" + req.headers.lead_id + " AND " }
+      if (req.headers.client_id) { condition += " client_id=" + req.headers.client_id + " AND " }
+      if (req.headers.project_id) { condition += " project_id=" + req.headers.project_id + " AND " }
       condition += " Date(remainder) > '" + formatDate + "'";
+      let type;
+      if (req.headers.user_id && req.headers.project_id && req.headers.client_id) {
+        type = 2;
+      } else if (req.headers.user_id && req.headers.lead_id) {
+        type = 1;
+      }
+      condition += type ? ` AND followup_for = ${type}` : "";
       let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
       if (query.success) {
         res.status(200).send({
@@ -717,7 +731,7 @@ const followUpList = async (req, res) => {
           error: query.error,
         });
       }
-    } else if (params == "completed") {
+    } else if (params == "4") {
       const date = new Date()
       const formatDate = moment(date).format('YYYY-MM-DD')
       const tblName = "tbl_followup"
@@ -726,7 +740,16 @@ const followUpList = async (req, res) => {
       // `user_id=${req.headers.user_id} AND lead_id=${req.headers.lead_id} AND outcomes IS NOT NULL`
       if (req.headers.user_id) { condition += "user_id=" + req.headers.user_id + " AND " }
       if (req.headers.lead_id) { condition += " lead_id=" + req.headers.lead_id + " AND " }
+      if (req.headers.client_id) { condition += " client_id=" + req.headers.client_id + " AND " }
+      if (req.headers.project_id) { condition += " project_id=" + req.headers.project_id + " AND " }
       condition += " outcomes IS NOT NULL ";
+      let type;
+      if (req.headers.user_id && req.headers.project_id && req.headers.client_id) {
+        type = 2;
+      } else if (req.headers.user_id && req.headers.lead_id) {
+        type = 1;
+      }
+      condition += type ? ` AND followup_for = ${type}` : "";
       let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
       if (query.success) {
         res.status(200).send({
@@ -741,12 +764,11 @@ const followUpList = async (req, res) => {
         });
       }
 
-    }else{
-      const tblName ="tbl_followup"
-      const parameter="*"
-      const condition=""
-
-      let query = await commonService.sqlSelectQueryWithParametrs(tblName,parameter,condition)
+    } else {
+      const tblName = "tbl_followup"
+      const parameter = "*"
+      const condition = ""
+      let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
 
       if (query.success) {
         res.status(200).send({
@@ -775,7 +797,6 @@ const activityHistory = async (req, res) => {
 
     let query = await commonService.sqlJoinQuery(`SELECT tbl_followup.description,tbl_followup.outcomes,tbl_followup.created_at, tbl_user.first_name as Name,tbl_followup.completed,tbl_notes.note_description,tbl_attachments.name from tbl_followup INNER JOIN tbl_user ON tbl_user.id = tbl_followup.user_id INNER JOIN tbl_notes ON tbl_followup.user_id = tbl_notes.id INNER JOIN tbl_attachments ON tbl_followup.id = tbl_attachments.project_id ORDER BY created_at ASC`)
     //  if(req.headers.client_id || req.headers.project_id){
-    //    console.log(query.result); 
     //  }
 
     let data = query.result;
@@ -852,10 +873,10 @@ const lead_created_homePage = async (req, res) => {
   try {
 
     const id = req.query.user_id
-    let  payload =req.body
-    let from_to ={
-      from_date : payload.from_date,
-      to_date : payload.to_date
+    let payload = req.body
+    let from_to = {
+      from_date: payload.from_date,
+      to_date: payload.to_date
     }
     let query = await commonService.sqlJoinQuery(`SELECT tls.lead_source_name,CASE WHEN tl.countlead_source is null then 0 ELSE tl.countlead_source END AS COUNT from tbl_lead_source tls LEFT JOIN (SELECT lead_source,COUNT(lead_source) as countlead_source from tbl_lead  WHERE  tbl_lead.user_id = ${id} AND tbl_lead.create_date BETWEEN ${from_to.from_date} AND ${from_to.to_date} GROUP BY lead_source)tl ON tl.lead_source=tls.id ;`)
     if (query.success) {
@@ -882,7 +903,7 @@ const lead_created_homePage = async (req, res) => {
 const lead_project = async (req, res) => {
   try {
     let id = req.query.user_id;
-    let query = await commonService.sqlJoinQuery(`SELECT COUNT(id) AS ID,MONTH(created_at) AS MONTH  FROM tbl_project GROUP BY MONTH(created_at)`)
+    let query = await commonService.sqlJoinQuery(`SELECT COUNT(id) AS ID,MONTHNAME(created_at) AS MONTH  FROM tbl_project GROUP BY MONTH(created_at)`)
     if (id) { " WHERE user_id=" + id }
     if (query.success) {
       res.status(200).send({
@@ -939,13 +960,15 @@ const updateFollowUp = async (req, res) => {
     const updated_at = moment().format("YYYY-MM-DD hh:mm:ss").toString();
     let parameters = "";
     if (req.body.lead_id) { parameters += "  lead_id = '" + req.body.lead_id + "'," }
+    if (req.body.client_id) { parameters += "  client_id = '" + req.body.client_id + "'," }
+    if (req.body.project_id) { parameters += "  project_id = '" + req.body.project_id + "'," }
+    if (req.body.followup_for) { parameters += "  followup_for = '" + req.body.followup_for + "'," }
     if (req.body.remainder) { parameters += "  remainder = '" + req.body.remainder + "'," }
     if (req.body.description) { parameters += "  description = '" + req.body.description + "'," }
     if (req.body.link) { parameters += "  link = '" + req.body.link + "'," }
     if (req.body.related_to) { parameters += "  related_to = '" + req.body.related_to + "'," }
     if (req.body.attendees) { parameters += "  attendees = '" + req.body.attendees + "'," }
     if (req.body.outcomes) { parameters += "  outcomes = '" + req.body.outcomes + "'," }
-    if (req.body.completed) { parameters += "  completed = '" + req.body.completed + "'," }
     parameters += "  updated_at = '" + updated_at + "' Where id = " + id + "";
     let tblName = "tbl_followup";
     let parameters1 = "Count(id) As count";
@@ -1100,6 +1123,49 @@ const priorityList = async (req, res) => {
   }
 }
 
+const deletefollowup = async (req, res) => {
+  try {
+    let id = req.params.id;
+    let query = `SELECT * FROM tbl_followup WHERE id = ${id}`;
+    let queryResult = await commonService.sqlJoinQuery(query);
+    if (queryResult.result.length > 0) {
+      const updated_at = moment().format("YYYY-MM-DD hh:mm:ss").toString();
+      let parameters = "flag = 1" + " ,  updated_at = '" +
+        updated_at +
+        "' Where id = " +
+        id +
+        "";
+      let tblName = "tbl_followup";
+      let queryResult = await commonService.sqlUpdateQueryWithParametrs(
+        tblName,
+        parameters
+      );
+      if (queryResult.result.affectedRows > 0) {
+        res.status(200).send({
+          status: 200,
+          message: "Record Deleted Successfully"
+        });
+      } else {
+        res.status(500).send({
+          status: 500,
+          message: "Something went wrong!"
+        });
+      }
+    } else {
+      res.status(500).send({
+        status: 500,
+        message: "No Record Found"
+      });
+    }
+  } catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+}
+
 module.exports = {
   showlead,
   leadAdd,
@@ -1108,7 +1174,6 @@ module.exports = {
   favouriteButton,
   addFollowUp,
   updateFollowUp,
-  // followupList,
   statusList,
   industriesList,
   priorityList,
@@ -1119,7 +1184,6 @@ module.exports = {
   followUpList_Datewise,
   lead_created_homePage,
   lead_converted,
-  lead_project
-
-
+  lead_project,
+  deletefollowup
 };

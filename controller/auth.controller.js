@@ -167,7 +167,6 @@ const userLogin = async (req, res) => {
       }
     }
   } catch (e) {
-    console.log(e)
     res.status(500).send({
       status: 500,
       message: "Something went wrong!",

@@ -106,3 +106,6 @@ dist
 #yml file
 .github/workflows/
 .github/workflows/dev_deployment.yml
+
+#Server Uploaded Attachments
+Attachments
