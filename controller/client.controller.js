@@ -173,17 +173,21 @@ const updateClientInfo = async (req, res) => {
 const getClientList = async (req, res) => {
     try {
         let query;
+        let user_id = req.body.user_id;
         let searchBy = req.body.searchBy;
-        // let id=req.query.user_id;
         let pageNo = req.body.pageNo;
         let pageLength = req.body.pageLength;
 
-        query = `SELECT id, concat(first_name," ",last_name) as full_name, updated_at as Date, email, phone_no as phone FROM tbl_client WHERE flag = 0`
+        query = `SELECT id , first_name, last_name , updated_at as Date, email, phone_no as phone ,(SELECT COUNT(p.id) FROM tbl_project as p WHERE p.client_id = tbl_client.id ) as projects FROM tbl_client WHERE flag = 0`
         if (searchBy) {
             query += ` AND concat(first_name," ",last_name) like "%${searchBy}%"`;
         }
+        if (user_id) {
+            query += ` AND user_id = ${user_id}`;
+        }
+        let getList1 = await commonService.sqlJoinQuery(query);
         let startPage = (pageNo * pageLength) - pageLength;
-        query = ` ${query} LIMIT ${startPage},${pageLength}`;
+        if (pageNo && pageLength) { query = ` ${query} LIMIT ${startPage},${pageLength}`; }
         let getList = await commonService.sqlJoinQuery(query);
         let data = [];
         getList.result.map(item => {
@@ -193,6 +197,8 @@ const getClientList = async (req, res) => {
         data.map(item => {
             item.Date = moment(item.Date).format('YYYY-MM-DD');
         });
+
+        data.push({ total_Client: getList1.result.length });
         if (getList.result.length > 0) {
             res.status(200).send({
                 status: 200,

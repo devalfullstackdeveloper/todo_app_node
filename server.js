@@ -9,7 +9,7 @@ app.use(cors({
     origin: "*"
 }))
 
-app.use('/api',Routes)
+app.use('/api', Routes)
 app.use("/profile", express.static("uploads"));
 app.use("/project-img", express.static("project-images"));
 app.use("/project-doc", express.static("project-documents"));

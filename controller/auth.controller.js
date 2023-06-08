@@ -6,7 +6,6 @@ const bcrypt = require("bcrypt");
 const multer = require("multer");
 const express = require("express");
 const app = express();
-// const Image = require("./../models/upload.model.js");
 
 app.use("/profile", express.static("uploads"));
 
@@ -180,7 +179,6 @@ const resetPassword = async (req, res) => {
   try {
     let validationRule = {
       email: "required|email",
-      // oldPassword: "required|string|min:8|max:8|passwordRegx",
       newPassword: "required|string|min:8|max:8|passwordRegx"
     };
     let isvalidated = await commonService.validateRequest(
@@ -203,11 +201,6 @@ const resetPassword = async (req, res) => {
         condition
       );
       if (queryResult.success && queryResult.result.length > 0) {
-        // // const password = await bcrypt.compare(
-        //   req.body.oldPassword,
-        //   queryResult.result[0].id
-        // );
-        // if (password == true) {
         let newPass = req.body.newPassword;
         const salt = await bcrypt.genSalt(10);
         let encryptPassword = await bcrypt.hash(newPass, salt);
@@ -238,13 +231,6 @@ const resetPassword = async (req, res) => {
             message: "Password reset successfully",
           });
         }
-        // } else {
-        //   res.status(500).send({
-        //     status: 401,
-        //     message: "Old password does not match",
-        //     error: queryResult.error,
-        //   });
-        // }
       } else {
         res.status(500).send({
           status: 500,

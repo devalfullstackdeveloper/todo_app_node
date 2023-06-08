@@ -461,80 +461,6 @@ const favouriteButton = async (req, res) => {
   }
 };
 
-//favourite button
-// const favouriteButton = async (req, res) => {
-//   try {
-//     let id = req.params.id;
-//     let parameters;
-
-//     let tblName = "tbl_lead";
-
-//     let parameters1 = "*";
-
-//     let condition1 = " id='" +
-//       id +
-//       "'";
-
-//     let queryResult1 = await commonService.sqlSelectQueryWithParametrs(
-//       tblName,
-//       parameters1,
-//       condition1
-//     );
-
-
-
-//     if (queryResult1.success) {
-
-//       if (queryResult1.result[0].favourite == "Yes") {
-//         parameters =
-//           "favourite= '" +
-//           "No" +
-//           "' Where id = " +
-//           id +
-//           "";
-
-//       }
-//       else {
-//         parameters =
-//           "favourite= '" +
-//           "Yes" +
-//           "' Where id = " +
-//           id +
-//           "";
-//       }
-//       let queryResult = await commonService.sqlUpdateQueryWithParametrs(
-//         tblName,
-//         parameters
-//       );
-//       if (queryResult.success) {
-//         res.status(200).send({
-//           status: 200,
-//           message: "favourite Record Changed",
-//         });
-//       } else {
-//         res.status(500).send({
-//           status: 500,
-//           message: "Something went wrong",
-//           error: queryResult.error,
-//         });
-//       }
-
-//     } else {
-//       res.status(500).send({
-//         status: 500,
-//         message: "Something went wrong",
-//         error: e,
-//       });
-//     }
-//   } catch (e) {
-//     res.status(500).send({
-//       status: 500,
-//       message: "Something went wrong!",
-//       error: e,
-//     });
-//   }
-// };
-
 const addFollowUp = async (req, res) => {
   try {
     let validationRule = {
@@ -652,7 +578,6 @@ const followUpList = async (req, res) => {
       condition += " Date(remainder) = '" + formatDate + "'";
 
       condition += type ? `AND followup_for = ${type}` : "";
-      // const condition = `user_id=${req.headers.user_id} AND lead_id=${req.headers.lead_id} AND Date(remainder) ='${formatDate}'`
       let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
       if (query.success) {
         res.status(200).send({
@@ -672,7 +597,6 @@ const followUpList = async (req, res) => {
       const tblName = "tbl_followup"
       const parameter = "*"
       let condition = "";
-      // `user_id=${req.headers.user_id} AND lead_id=${req.headers.lead_id} AND Date(remainder) < '${formatDate}' AND outcomes IS NULL`
       if (req.headers.user_id) { condition += "user_id=" + req.headers.user_id + " AND " }
       if (req.headers.lead_id) { condition += " lead_id=" + req.headers.lead_id + " AND " }
       if (req.headers.client_id) { condition += " client_id=" + req.headers.client_id + " AND " }
@@ -705,7 +629,6 @@ const followUpList = async (req, res) => {
       const tblName = "tbl_followup"
       const parameter = "*"
       let condition = "";
-      // `user_id=${req.headers.user_id} AND lead_id=${req.headers.lead_id} AND Date(remainder) > '${formatDate}'`
       if (req.headers.user_id) { condition += "user_id=" + req.headers.user_id + " AND " }
       if (req.headers.lead_id) { condition += " lead_id=" + req.headers.lead_id + " AND " }
       if (req.headers.client_id) { condition += " client_id=" + req.headers.client_id + " AND " }
@@ -737,7 +660,6 @@ const followUpList = async (req, res) => {
       const tblName = "tbl_followup"
       const parameter = "*"
       let condition = "";
-      // `user_id=${req.headers.user_id} AND lead_id=${req.headers.lead_id} AND outcomes IS NOT NULL`
       if (req.headers.user_id) { condition += "user_id=" + req.headers.user_id + " AND " }
       if (req.headers.lead_id) { condition += " lead_id=" + req.headers.lead_id + " AND " }
       if (req.headers.client_id) { condition += " client_id=" + req.headers.client_id + " AND " }
@@ -796,8 +718,6 @@ const activityHistory = async (req, res) => {
   try {
 
     let query = await commonService.sqlJoinQuery(`SELECT tbl_followup.description,tbl_followup.outcomes,tbl_followup.created_at, tbl_user.first_name as Name,tbl_followup.completed,tbl_notes.note_description,tbl_attachments.name from tbl_followup INNER JOIN tbl_user ON tbl_user.id = tbl_followup.user_id INNER JOIN tbl_notes ON tbl_followup.user_id = tbl_notes.id INNER JOIN tbl_attachments ON tbl_followup.id = tbl_attachments.project_id ORDER BY created_at ASC`)
-    //  if(req.headers.client_id || req.headers.project_id){
-    //  }
 
     let data = query.result;
     let newData = []
@@ -871,14 +791,18 @@ const followUpList_Datewise = async (req, res) => {
 }
 const lead_created_homePage = async (req, res) => {
   try {
-
-    const id = req.query.user_id
-    let payload = req.body
-    let from_to = {
-      from_date: payload.from_date,
-      to_date: payload.to_date
+    let month = moment().format('MM');
+    let fromYear;
+    let toYear;
+    if (month > 3) {
+      fromYear = moment().format('YYYY');
+      toYear = parseInt(moment().format('YYYY')) + 1;
+    } else {
+      fromYear = parseInt(moment().format('YYYY')) - 1;
+      toYear = moment().format('YYYY');
     }
-    let query = await commonService.sqlJoinQuery(`SELECT tls.lead_source_name,CASE WHEN tl.countlead_source is null then 0 ELSE tl.countlead_source END AS COUNT from tbl_lead_source tls LEFT JOIN (SELECT lead_source,COUNT(lead_source) as countlead_source from tbl_lead  WHERE  tbl_lead.user_id = ${id} AND tbl_lead.create_date BETWEEN ${from_to.from_date} AND ${from_to.to_date} GROUP BY lead_source)tl ON tl.lead_source=tls.id ;`)
+    let query = await commonService.sqlJoinQuery(`SELECT ls.lead_source_name, (SELECT COUNT(id) FROM tbl_lead as l where Date(l.create_date) between '${fromYear}-03-31' AND '${toYear}-04-01' AND l.lead_source = ls.lead_source_name AND l.flag = 0) as count FROM tbl_lead_source as ls where ls.status = 1`)
+    query.result.push({ CFY: fromYear + "-" + toYear })
     if (query.success) {
       res.status(200).send({
         status: 200,
@@ -902,9 +826,20 @@ const lead_created_homePage = async (req, res) => {
 }
 const lead_project = async (req, res) => {
   try {
+    let month = moment().format('MM');
+    let fromYear;
+    let toYear;
+    if (month > 3) {
+      fromYear = moment().format('YYYY');
+      toYear = parseInt(moment().format('YYYY')) + 1;
+    } else {
+      fromYear = parseInt(moment().format('YYYY')) - 1;
+      toYear = moment().format('YYYY');
+    }
     let id = req.query.user_id;
-    let query = await commonService.sqlJoinQuery(`SELECT COUNT(id) AS ID,MONTHNAME(created_at) AS MONTH  FROM tbl_project GROUP BY MONTH(created_at)`)
+    let query = await commonService.sqlJoinQuery(`SELECT COUNT(id) AS Count,MONTHNAME(created_at) AS MONTH  FROM tbl_project  where Date(created_at) BETWEEN '${fromYear}-03-31' AND '${toYear}-04-01' GROUP BY MONTHNAME(created_at) ORDER BY Date(created_at) ASC`)
     if (id) { " WHERE user_id=" + id }
+    query.result.push({ CFY: fromYear + "-" + toYear })
     if (query.success) {
       res.status(200).send({
         status: 200,
@@ -928,9 +863,19 @@ const lead_project = async (req, res) => {
 
 }
 const lead_converted = async (req, res) => {
-
   try {
-    let query = await commonService.sqlJoinQuery(`  SELECT u.id,concat(u.first_name," ",u.last_name) AS FullName,(SELECT COUNT(l.id ) FROM tbl_client as l WHERE l.user_id = u.id AND l.lead_id > 0) AS Total_Count FROM tbl_user AS u`)
+    let month = moment().format('MM');
+    let fromYear;
+    let toYear;
+    if (month > 3) {
+      fromYear = moment().format('YYYY');
+      toYear = parseInt(moment().format('YYYY')) + 1;
+    } else {
+      fromYear = parseInt(moment().format('YYYY')) - 1;
+      toYear = moment().format('YYYY');
+    }
+    let query = await commonService.sqlJoinQuery(`SELECT u.id, u.first_name as name,(SELECT COUNT(l.id ) FROM tbl_lead as l WHERE l.lead_status = 'Qualified' AND l.user_id = u.id AND Date(l.create_date) between '${fromYear}-03-31' AND '${toYear}-04-01' AND l.flag=0) AS Total_Converted FROM tbl_user AS u where u.role_id = 2 AND u.flag = 0`)
+    query.result.push({ CFY: fromYear + "-" + toYear })
     if (query.success) {
       res.status(200).send({
         status: 200,
