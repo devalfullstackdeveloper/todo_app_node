@@ -27,7 +27,7 @@ const sqlDeleteQueryWithParametrsh = async (id, tblName) => {
 };
 const sqlSelectQueryWithParametrs = async (tblName, parameters, condition) => {
   let sql;
- 
+
   if (condition) {
     sql =
       "SELECT " + parameters + " from " + tblName + " where " + condition + "";
@@ -40,14 +40,7 @@ const sqlSelectQueryWithParametrs = async (tblName, parameters, condition) => {
     resolve(result);
   });
 };
-// const sqlSelectQueryWithWhereParametrs = async (tblName,parameters,condition) => {
-//   let sql = "SELECT "+parameters+" from "+tblName+" where "+condition+"";
-//   let data = [];
-//   return new Promise(async (resolve) => {
-//     let result = await commonQueryFunction(sql,data)
-//     resolve(result)
-//   });
-// };
+
 const sqlUpdateQueryWithParametrs = async (tblName, parameters) => {
   let sql = "Update " + tblName + " SET " + parameters + "";
   let data = [];
@@ -59,7 +52,6 @@ const sqlUpdateQueryWithParametrs = async (tblName, parameters) => {
 
 //join query
 const sqlJoinQuery = (sql) => {
-  // let sql = "SELECT "+parameters+" from "+tblName+" where "+condition+"";
   let data = [];
   return new Promise(async (resolve) => {
     let result = await commonQueryFunction(sql, data);
@@ -118,7 +110,6 @@ module.exports = {
   sqlDeleteQueryWithParametrs,
   sqlSelectQueryWithParametrs,
   sqlUpdateQueryWithParametrs,
-  //sqlSelectQueryWithWhereParametrs,
   sqlJoinQuery,
   sqlImageUpload,
 };
