@@ -802,11 +802,11 @@ const lead_created_homePage = async (req, res) => {
       toYear = moment().format('YYYY');
     }
     let query = await commonService.sqlJoinQuery(`SELECT ls.lead_source_name, (SELECT COUNT(id) FROM tbl_lead as l where Date(l.create_date) between '${fromYear}-03-31' AND '${toYear}-04-01' AND l.lead_source = ls.lead_source_name AND l.flag = 0) as count FROM tbl_lead_source as ls where ls.status = 1`)
-    query.result.push({ CFY: fromYear + "-" + toYear })
     if (query.success) {
       res.status(200).send({
         status: 200,
-        data: query.result
+        data: query.result,
+        CFY: fromYear + "-" + toYear
       });
     } else {
       res.status(500).send({
@@ -824,6 +824,7 @@ const lead_created_homePage = async (req, res) => {
     });
   }
 }
+
 const lead_project = async (req, res) => {
   try {
     let month = moment().format('MM');
@@ -837,13 +838,57 @@ const lead_project = async (req, res) => {
       toYear = moment().format('YYYY');
     }
     let id = req.query.user_id;
-    let query = await commonService.sqlJoinQuery(`SELECT COUNT(id) AS Count,MONTHNAME(created_at) AS MONTH  FROM tbl_project  where Date(created_at) BETWEEN '${fromYear}-03-31' AND '${toYear}-04-01' GROUP BY MONTHNAME(created_at) ORDER BY Date(created_at) ASC`)
+    let query = await commonService.sqlJoinQuery(`SELECT COUNT(id) AS Count,MONTHNAME(created_at) AS MONTH  FROM tbl_project  where Date(created_at) BETWEEN '${fromYear}-03-31' AND '${toYear}-04-01' GROUP BY MONTHNAME(created_at)`)
     if (id) { " WHERE user_id=" + id }
-    query.result.push({ CFY: fromYear + "-" + toYear })
+    let monthNames = [{
+      "Count": 0,
+      "MONTH": "April"
+    }, {
+      "Count": 0,
+      "MONTH": "May"
+    }, {
+      "Count": 0,
+      "MONTH": "June"
+    }, {
+      "Count": 0,
+      "MONTH": "July"
+    }, {
+      "Count": 0,
+      "MONTH": "August"
+    }, {
+      "Count": 0,
+      "MONTH": "September"
+    }, {
+      "Count": 0,
+      "MONTH": "October"
+    }, {
+      "Count": 0,
+      "MONTH": "November"
+    }, {
+      "Count": 0,
+      "MONTH": "December"
+    }, {
+      "Count": 0,
+      "MONTH": "January"
+    }, {
+      "Count": 0,
+      "MONTH": "February"
+    }, {
+      "Count": 0,
+      "MONTH": "March"
+    }];
+    query.result.map(item => {
+      monthNames.map(item1 => {
+        if (item1.MONTH == item.MONTH) {
+          item1.Count = item.Count;
+        }
+      });
+    });
     if (query.success) {
       res.status(200).send({
         status: 200,
-        data: query.result
+        data: monthNames,
+        CFY: fromYear + "-" + toYear
       });
     } else {
       res.status(500).send({
@@ -875,11 +920,11 @@ const lead_converted = async (req, res) => {
       toYear = moment().format('YYYY');
     }
     let query = await commonService.sqlJoinQuery(`SELECT u.id, u.first_name as name,(SELECT COUNT(l.id ) FROM tbl_lead as l WHERE l.lead_status = 'Qualified' AND l.user_id = u.id AND Date(l.create_date) between '${fromYear}-03-31' AND '${toYear}-04-01' AND l.flag=0) AS Total_Converted FROM tbl_user AS u where u.role_id = 2 AND u.flag = 0`)
-    query.result.push({ CFY: fromYear + "-" + toYear })
     if (query.success) {
       res.status(200).send({
         status: 200,
-        data: query.result
+        data: query.result,
+        CFY: fromYear + "-" + toYear
       });
     } else {
       res.status(500).send({
