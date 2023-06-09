@@ -198,11 +198,11 @@ const getClientList = async (req, res) => {
             item.Date = moment(item.Date).format('YYYY-MM-DD');
         });
 
-        data.push({ total_Client: getList1.result.length });
         if (getList.result.length > 0) {
             res.status(200).send({
                 status: 200,
                 result: data,
+                total_Client: getList1.result.length
             });
         } else {
             res.status(500).send({
