@@ -97,6 +97,7 @@ const updateClientInfo = async (req, res) => {
         if (req.body.first_name) { parameters += "first_name= '" + req.body.first_name + "'," }
         if (req.body.user_id) { parameters += "user_id = '" + req.body.user_id + "'," }
         if (req.body.last_name) { parameters += " last_name = '" + req.body.last_name + "'," }
+        if (req.body.profile_img) { parameters += "  profile_img = '" + req.body.profile_img + "'," }
         if (req.body.company) { parameters += "  company = '" + req.body.company + "'," }
         if (req.body.title) { parameters += "  title = '" + req.body.title + "'," }
         if (req.body.client_status) { parameters += "  client_status = '" + req.body.client_status + "'," }
