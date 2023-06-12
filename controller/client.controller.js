@@ -178,12 +178,12 @@ const getClientList = async (req, res) => {
         let pageNo = req.body.pageNo;
         let pageLength = req.body.pageLength;
 
-        query = `SELECT id , first_name, last_name , updated_at as Date, email, phone_no as phone ,(SELECT COUNT(p.id) FROM tbl_project as p WHERE p.client_id = tbl_client.id ) as projects FROM tbl_client WHERE flag = 0`
+        query = `SELECT c.id , c.first_name, c.last_name ,c.profile_img,u.first_name as BD_first_mame, u.last_name as BD_last_mame, c.updated_at as Date, c.email, c.phone_no as phone ,(SELECT COUNT(p.id) FROM tbl_project as p WHERE p.client_id = c.id ) as projects FROM tbl_client as c LEFT JOIN tbl_user as u ON c.user_id = u.id WHERE c.flag = 0`
         if (searchBy) {
-            query += ` AND concat(first_name," ",last_name) like "%${searchBy}%"`;
+            query += ` AND concat(c.first_name," ",c.last_name) like "%${searchBy}%"`;
         }
         if (user_id) {
-            query += ` AND user_id = ${user_id}`;
+            query += ` AND c.user_id = ${user_id}`;
         }
         let getList1 = await commonService.sqlJoinQuery(query);
         let startPage = (pageNo * pageLength) - pageLength;
@@ -198,7 +198,7 @@ const getClientList = async (req, res) => {
             item.Date = moment(item.Date).format('YYYY-MM-DD');
         });
 
-        if (getList.result.length > 0) {
+        if (getList.success) {
             res.status(200).send({
                 status: 200,
                 result: data,
@@ -225,9 +225,9 @@ const getClientList = async (req, res) => {
 const getClientListById = async (req, res) => {
     try {
         const id = req.params.id;
-        const query = `SELECT * FROM tbl_client WHERE flag = 0 AND id = ${req.params.id}`
+        const query = `SELECT c.*,u.first_name as BD_first_mame, u.last_name as BD_last_mame FROM tbl_client as c LEFT JOIN tbl_user as u ON c.user_id = u.id WHERE c.flag = 0 AND c.id = ${req.params.id}`
         let getList = await commonService.sqlJoinQuery(query);
-        if (getList.result.length > 0) {
+        if (getList.success) {
             res.status(200).send({
                 status: 200,
                 result: getList.result

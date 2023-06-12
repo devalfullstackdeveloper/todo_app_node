@@ -3,6 +3,7 @@ const commonService = require("../services/common.services");
 const moment = require("moment/moment");
 const { isNull } = require("underscore");
 const { disable } = require("../server");
+const { query } = require("express");
 
 
 const showlead = async (req, res) => {
@@ -556,155 +557,83 @@ const followUpListBy_lead = async (req, res) => {
     });
   }
 }
+
 const followUpList = async (req, res) => {
   try {
-    const params = req.params.type;
-    if (params == "1") {
-      const date = new Date()
-      const formatDate = moment(date).format('YYYY-MM-DD')
-      const tblName = "tbl_followup"
-      const parameter = "*"
-      let condition = "";
-      if (req.headers.user_id) { condition += "user_id=" + req.headers.user_id + " AND " }
-      if (req.headers.lead_id) { condition += " lead_id=" + req.headers.lead_id + " AND " }
-      if (req.headers.client_id) { condition += " client_id=" + req.headers.client_id + " AND " }
-      if (req.headers.project_id) { condition += " project_id=" + req.headers.project_id + " AND " }
-      let type;
-      if (req.headers.user_id && req.headers.project_id && req.headers.client_id) {
-        type = 2;
-      } else if (req.headers.user_id && req.headers.lead_id) {
-        type = 1;
+    let sort = req.params.type;
+    let payload = req.body;
+    let type = 0;
+    let query = `SELECT f.* FROM tbl_followup as f `;
+    if (payload.user_id && payload.lead_id) {
+      type = 1;
+    } else if (payload.user_id && payload.client_id && payload.project_id) {
+      type = 2;
+    }
+    if (payload.user_id) { query += "WHERE f.flag = 0 AND f.user_id=" + payload.user_id + " AND " } else { query += "WHERE f.flag = 0 " }
+    if (payload.lead_id) { query += " f.lead_id=" + payload.lead_id + " AND " }
+    if (payload.client_id) { query += " f.client_id=" + payload.client_id + " AND " }
+    if (payload.project_id) { query += " f.project_id=" + payload.project_id + " AND " }
+    query += type ? "f.followup_for=" + type : "";
+    if (sort == 1 || sort == 2 || sort == 3 || sort == 4) {
+      query += " AND "
+    }
+    let date = moment().format('YYYY-MM-DD');
+    if (sort == 1) {
+      query += `  Date(remainder)='${date}'`;
+    } else if (sort == 2) {
+      query += `  Date(remainder) < '${date}' AND outcomes IS NULL`;
+    } else if (sort == 3) {
+      query += `  Date(remainder) > '${date}'`;
+    } else if (sort == 4) {
+      query += `  Date(remainder) < '${date}' AND outcomes IS NOT NULL`;
+    }
+    let queryResult = await commonService.sqlJoinQuery(query)
+    let data = [];
+    data = queryResult.result;
+    for (var i = 0; i < data.length; i++) {
+      let relate = "";
+      let relate1 = "";
+      if (type && type == 1) {
+        relate += `SELECT concat(first_name," ",last_name) as lead_name, profile_img  FROM tbl_lead WHERE id = ${data[i].related_to} AND flag = 0`;
+      } else if (type && type == 2) {
+        relate += `SELECT  concat(c.first_name," ",c.last_name) as client_name, profile_img FROM tbl_client as c WHERE c.id = ${data[i].related_to}  AND c.flag = 0`;
+        relate1 += `SELECT name from tbl_project where user_id=${data[i].user_id} AND client_id=${data[i].client_id} AND id = ${data[i].project_id} AND flag = 0`
       }
-      condition += " Date(remainder) = '" + formatDate + "'";
+      let related_to = await commonService.sqlJoinQuery(relate);
+      let project;
+      if (relate1 != "") {
+        project = await commonService.sqlJoinQuery(relate1)
+      }
+      if (related_to.result.length > 0) {
+        data[i].related_to = related_to.result;
+      } else {
+        data[i].related_to = [];
 
-      condition += type ? `AND followup_for = ${type}` : "";
-      let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
-      if (query.success) {
-        res.status(200).send({
-          status: 200,
-          data: query.result
-        });
-      } else {
-        res.status(500).send({
-          status: 500,
-          message: "No Record Found.",
-          error: query.error,
-        });
       }
-    } else if (params == "2") {
-      const date = new Date()
-      const formatDate = moment(date).format('YYYY-MM-DD')
-      const tblName = "tbl_followup"
-      const parameter = "*"
-      let condition = "";
-      if (req.headers.user_id) { condition += "user_id=" + req.headers.user_id + " AND " }
-      if (req.headers.lead_id) { condition += " lead_id=" + req.headers.lead_id + " AND " }
-      if (req.headers.client_id) { condition += " client_id=" + req.headers.client_id + " AND " }
-      if (req.headers.project_id) { condition += " project_id=" + req.headers.project_id + " AND " }
-      let type;
-      if (req.headers.user_id && req.headers.project_id && req.headers.client_id) {
-        type = 2;
-      } else if (req.headers.user_id && req.headers.lead_id) {
-        type = 1;
-      }
-      condition += " Date(remainder) < '" + formatDate + "' AND outcomes IS NULL";
-      condition += type ? ` AND followup_for = ${type}` : "";
-      let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
-      if (query.success) {
-        res.status(200).send({
-          status: 200,
-          data: query.result
-        });
-      } else {
-        res.status(500).send({
-          status: 500,
-          message: "No Record Found.",
-          error: query.error,
-        });
-      }
+      if (project && project.result.length > 0) {
+        data[i].project = project.result
+      } else if (project) {
+        data[i].project = [];
 
-    } else if (params == "3") {
-      const date = new Date()
-      const formatDate = moment(date).format('YYYY-MM-DD')
-      const tblName = "tbl_followup"
-      const parameter = "*"
-      let condition = "";
-      if (req.headers.user_id) { condition += "user_id=" + req.headers.user_id + " AND " }
-      if (req.headers.lead_id) { condition += " lead_id=" + req.headers.lead_id + " AND " }
-      if (req.headers.client_id) { condition += " client_id=" + req.headers.client_id + " AND " }
-      if (req.headers.project_id) { condition += " project_id=" + req.headers.project_id + " AND " }
-      condition += " Date(remainder) > '" + formatDate + "'";
-      let type;
-      if (req.headers.user_id && req.headers.project_id && req.headers.client_id) {
-        type = 2;
-      } else if (req.headers.user_id && req.headers.lead_id) {
-        type = 1;
       }
-      condition += type ? ` AND followup_for = ${type}` : "";
-      let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
-      if (query.success) {
-        res.status(200).send({
-          status: 200,
-          data: query.result
-        });
+      let query = await commonService.sqlJoinQuery(`(SELECT concat(u.first_name," ",u.last_name) as name, profile_img FROM tbl_user as u WHERE FIND_IN_SET(u.id, REPLACE(REPLACE((SELECT fu.attendees FROM tbl_followup as fu where fu.id = ${data[i].id}), '[', ''), ']', '')) > 0)`);
+      if (query.result.length > 0) {
+        data[i].attendees = query.result;
       } else {
-        res.status(500).send({
-          status: 500,
-          message: "No Record Found.",
-          error: query.error,
-        });
-      }
-    } else if (params == "4") {
-      const date = new Date()
-      const formatDate = moment(date).format('YYYY-MM-DD')
-      const tblName = "tbl_followup"
-      const parameter = "*"
-      let condition = "";
-      if (req.headers.user_id) { condition += "user_id=" + req.headers.user_id + " AND " }
-      if (req.headers.lead_id) { condition += " lead_id=" + req.headers.lead_id + " AND " }
-      if (req.headers.client_id) { condition += " client_id=" + req.headers.client_id + " AND " }
-      if (req.headers.project_id) { condition += " project_id=" + req.headers.project_id + " AND " }
-      condition += " outcomes IS NOT NULL ";
-      let type;
-      if (req.headers.user_id && req.headers.project_id && req.headers.client_id) {
-        type = 2;
-      } else if (req.headers.user_id && req.headers.lead_id) {
-        type = 1;
-      }
-      condition += type ? ` AND followup_for = ${type}` : "";
-      let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
-      if (query.success) {
-        res.status(200).send({
-          status: 200,
-          data: query.result
-        });
-      } else {
-        res.status(500).send({
-          status: 500,
-          message: "No Record Found.",
-          error: query.error,
-        });
-      }
+        data[i].attendees = [];
 
+      }
+    }
+    if (queryResult.success) {
+      res.status(200).send({
+        status: 200,
+        data: data
+      });
     } else {
-      const tblName = "tbl_followup"
-      const parameter = "*"
-      const condition = ""
-      let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
-
-      if (query.success) {
-        res.status(200).send({
-          status: 200,
-          data: query.result
-        });
-      } else {
-        res.status(500).send({
-          status: 500,
-          message: "No Record Found.",
-          error: query.error,
-        });
-      }
-
+      res.status(500).send({
+        status: 500,
+        message: "No Record Found.",
+      });
     }
   } catch (e) {
     res.status(500).send({
@@ -714,6 +643,7 @@ const followUpList = async (req, res) => {
     });
   }
 }
+
 const activityHistory = async (req, res) => {
   try {
 
