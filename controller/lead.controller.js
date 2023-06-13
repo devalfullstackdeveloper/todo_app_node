@@ -779,13 +779,21 @@ const lead_project = async (req, res) => {
       fromYear = parseInt(moment().format('YYYY')) - 1;
       toYear = moment().format('YYYY');
     }
-    let query = await commonService.sqlJoinQuery(`SELECT COUNT(id) AS Count,DATE_FORMAT(concat(Year(created_at),"-",MONTH(created_at),"-1"),"%Y-%m-%d") AS Date  FROM tbl_project  where Date(created_at) BETWEEN '${fromYear}-03-31' AND '${toYear}-04-01' AND flag = 0  GROUP BY concat(Year(created_at),"-",MONTH(created_at),"-1") ORDER BY concat(Year(created_at),"-",MONTH(created_at),"-1") `)
+    let query = await commonService.sqlJoinQuery(`SELECT COUNT(id) AS Count, concat(Year(created_at),"-",MONTH(created_at),"-01") AS Date  FROM tbl_project  where Date(created_at) BETWEEN '${fromYear}-03-31' AND '${toYear}-04-01' AND flag = 0  GROUP BY concat(Year(created_at),"-",MONTH(created_at),"-01") `)
     let Month = [4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3];
     let data = [];
+    query.result.map(item1 => {
+      let m = item1.Date.split('-')[1];
+      if (m.length == 1) {
+        m = "0" + item1.Date.split('-')[1];
+      } else {
+        m = item1.Date.split('-')[1];
+      }
+      item1.Date = item1.Date.split('-')[0] +"-"+ m +"-"+ item1.Date.split('-')[2];
+    })
     Month.map(item => {
       query.result.map(item1 => {
         if (item == moment(item1.Date).format('MM')) {
-          item1.Date = moment(item1.Date).format('YYYY-MM-DD');
           data.push(item1)
         }
       })
