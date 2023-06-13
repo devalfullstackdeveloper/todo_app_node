@@ -466,7 +466,6 @@ const addFollowUp = async (req, res) => {
   try {
     let validationRule = {
       user_id: "required|string",
-      lead_id: "required|string",
       remainder: "required|string",
       related_to: "required|string",
     };
@@ -484,7 +483,7 @@ const addFollowUp = async (req, res) => {
       const payload = req.body;
       let tblName = "tbl_followup";
       let parameters = "*";
-      let condition = "user_id = '" + payload.user_id + "' AND lead_id = '" + payload.lead_id + "' AND remainder = '" + payload.remainder + "' AND related_to = '" + payload.related_to + "' AND link = '" + payload.link + "' AND attendees = '" + payload.attendees + "' AND flag = 0";
+      let condition = "user_id = '" + payload.user_id + "' AND remainder = '" + payload.remainder + "' AND related_to = '" + payload.related_to + "' AND link = '" + payload.link + "' AND attendees = '" + payload.attendees + "' AND flag = 0";
       let queryResult = await commonService.sqlSelectQueryWithParametrs(
         tblName,
         parameters,
@@ -501,9 +500,22 @@ const addFollowUp = async (req, res) => {
           },
         });
       } else {
+        let paratameters = {
+          user_id: payload.user_id,
+          lead_id: payload.lead_id,
+          client_id: payload.client_id,
+          project_id: payload.project_id,
+          followup_for: payload.followup_for,
+          remainder: payload.remainder,
+          description: payload.description,
+          link: payload.link,
+          related_to: payload.related_to,
+          attendees: payload.attendees,
+          outcomes: payload.outcomes
+        };
         let queryResult = await commonService.sqlQueryWithParametrs(
           tblName,
-          req.body
+          paratameters
         );
         if (queryResult.success) {
           res.status(200).send({
@@ -562,18 +574,18 @@ const followUpList = async (req, res) => {
   try {
     let sort = req.params.type;
     let payload = req.body;
-    let type = 0;
+    let type = 1;
     let query = `SELECT f.* FROM tbl_followup as f `;
     if (payload.user_id && payload.lead_id) {
       type = 1;
     } else if (payload.user_id && payload.client_id && payload.project_id) {
       type = 2;
     }
-    if (payload.user_id) { query += "WHERE f.flag = 0 AND f.user_id=" + payload.user_id + " AND " } else { query += "WHERE f.flag = 0 " }
+    if (payload.user_id) { query += "WHERE f.flag = 0 AND f.user_id=" + payload.user_id + " AND " } else { query += "WHERE f.flag = 0 AND " }
     if (payload.lead_id) { query += " f.lead_id=" + payload.lead_id + " AND " }
     if (payload.client_id) { query += " f.client_id=" + payload.client_id + " AND " }
     if (payload.project_id) { query += " f.project_id=" + payload.project_id + " AND " }
-    query += type ? "f.followup_for=" + type : "";
+    query += "f.followup_for=" + type;
     if (sort == 1 || sort == 2 || sort == 3 || sort == 4) {
       query += " AND "
     }
@@ -602,7 +614,7 @@ const followUpList = async (req, res) => {
       let related_to = await commonService.sqlJoinQuery(relate);
       let project;
       if (relate1 != "") {
-        project = await commonService.sqlJoinQuery(relate1)
+        project = await commonService.sqlJoinQuery(relate1);
       }
       if (related_to.result.length > 0) {
         data[i].related_to = related_to.result;
@@ -767,12 +779,21 @@ const lead_project = async (req, res) => {
       fromYear = parseInt(moment().format('YYYY')) - 1;
       toYear = moment().format('YYYY');
     }
-    let query = await commonService.sqlJoinQuery(`SELECT COUNT(id) AS Count,concat(Year(created_at),", ",MONTH(created_at)) AS Date  FROM tbl_project  where Date(created_at) BETWEEN '${fromYear}-03-31' AND '${toYear}-04-01' AND flag = 0  GROUP BY concat(Year(created_at),", ",MONTH(created_at)) ORDER BY concat(Year(created_at),", ",MONTH(created_at)) `)
-    
+    let query = await commonService.sqlJoinQuery(`SELECT COUNT(id) AS Count,DATE_FORMAT(concat(Year(created_at),"-",MONTH(created_at),"-1"),"%Y-%m-%d") AS Date  FROM tbl_project  where Date(created_at) BETWEEN '${fromYear}-03-31' AND '${toYear}-04-01' AND flag = 0  GROUP BY concat(Year(created_at),"-",MONTH(created_at),"-1") ORDER BY concat(Year(created_at),"-",MONTH(created_at),"-1") `)
+    let Month = [4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3];
+    let data = [];
+    Month.map(item => {
+      query.result.map(item1 => {
+        if (item == moment(item1.Date).format('MM')) {
+          item1.Date = moment(item1.Date).format('YYYY-MM-DD');
+          data.push(item1)
+        }
+      })
+    });
     if (query.success) {
       res.status(200).send({
         status: 200,
-        data: query.result,
+        data: data,
         CFY: fromYear + "-" + toYear
       });
     } else {
