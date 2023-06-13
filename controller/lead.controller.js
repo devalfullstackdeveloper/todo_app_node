@@ -767,57 +767,12 @@ const lead_project = async (req, res) => {
       fromYear = parseInt(moment().format('YYYY')) - 1;
       toYear = moment().format('YYYY');
     }
-    let id = req.query.user_id;
-    let query = await commonService.sqlJoinQuery(`SELECT COUNT(id) AS Count,MONTHNAME(created_at) AS MONTH  FROM tbl_project  where Date(created_at) BETWEEN '${fromYear}-03-31' AND '${toYear}-04-01' GROUP BY MONTHNAME(created_at)`)
-    if (id) { " WHERE user_id=" + id }
-    let monthNames = [{
-      "Count": 0,
-      "MONTH": "April"
-    }, {
-      "Count": 0,
-      "MONTH": "May"
-    }, {
-      "Count": 0,
-      "MONTH": "June"
-    }, {
-      "Count": 0,
-      "MONTH": "July"
-    }, {
-      "Count": 0,
-      "MONTH": "August"
-    }, {
-      "Count": 0,
-      "MONTH": "September"
-    }, {
-      "Count": 0,
-      "MONTH": "October"
-    }, {
-      "Count": 0,
-      "MONTH": "November"
-    }, {
-      "Count": 0,
-      "MONTH": "December"
-    }, {
-      "Count": 0,
-      "MONTH": "January"
-    }, {
-      "Count": 0,
-      "MONTH": "February"
-    }, {
-      "Count": 0,
-      "MONTH": "March"
-    }];
-    query.result.map(item => {
-      monthNames.map(item1 => {
-        if (item1.MONTH == item.MONTH) {
-          item1.Count = item.Count;
-        }
-      });
-    });
+    let query = await commonService.sqlJoinQuery(`SELECT COUNT(id) AS Count,concat(Year(created_at),", ",MONTH(created_at)) AS Date  FROM tbl_project  where Date(created_at) BETWEEN '${fromYear}-03-31' AND '${toYear}-04-01' AND flag = 0  GROUP BY concat(Year(created_at),", ",MONTH(created_at)) ORDER BY concat(Year(created_at),", ",MONTH(created_at)) `)
+    
     if (query.success) {
       res.status(200).send({
         status: 200,
-        data: monthNames,
+        data: query.result,
         CFY: fromYear + "-" + toYear
       });
     } else {
