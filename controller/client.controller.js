@@ -257,14 +257,8 @@ const addClientProject = async (req, res) => {
             client_id: "required|string",
             name: "required|string",
             project_type: "required|string",
-            project_month_rate: "string",
-            project_hour_rate: "string",
-            project_value: "required|string",
-            enter_hours: "string",
-            enter_months: "string",
             project_status: "required|string",
-            related_to: "required|string",
-            description: "required|string"
+            related_to: "required|string"
         };
         let isvalidated = await commonService.validateRequest(
             req.body,
@@ -279,7 +273,7 @@ const addClientProject = async (req, res) => {
         } else {
             let tblName = "tbl_project";
             let parameters = "*";
-            let condition = "user_id = '" + payload.user_id + "' AND client_id = '" + payload.client_id + "' AND name = '" + payload.name + "' AND flag = 0";
+            let condition = "user_id = '" + payload.user_id + "' AND client_id = '" + payload.client_id + "' AND name = '" + payload.name + "' AND project_type = '" + payload.project_type + "' AND flag = 0";
             let queryResult = await commonService.sqlSelectQueryWithParametrs(
                 tblName,
                 parameters,
@@ -296,9 +290,23 @@ const addClientProject = async (req, res) => {
                     },
                 });
             } else {
+                let parameters = {
+                    user_id: payload.user_id,
+                    client_id: payload.client_id,
+                    name: payload.name,
+                    project_type: payload.project_type,
+                    project_value: payload.project_value,
+                    enter_hours: payload.enter_hours,
+                    hour_rate: payload.hour_rate,
+                    enter_months: payload.enter_months,
+                    month_rate: payload.month_rate,
+                    project_status: payload.project_status,
+                    related_to: payload.related_to,
+                    description: payload.description
+                };
                 let queryResult = await commonService.sqlQueryWithParametrs(
                     tblName,
-                    payload
+                    parameters
                 );
                 if (queryResult.success) {
                     res.status(200).send({
@@ -332,10 +340,10 @@ const updateClientProject = async (req, res) => {
         if (req.body.name) { parameters += "  name = '" + req.body.name + "'," }
         if (req.body.project_type) { parameters += "   project_type = '" + req.body.project_type + "'," }
         if (req.body.project_value) { parameters += "  project_value = '" + req.body.project_value + "'," }
-        if (req.body.project_hour_rate) { parameters += "  project_hour_rate = '" + req.body.project_hour_rate + "'," }
-        if (req.body.project_month_rate) { parameters += "  project_month_rate = '" + req.body.project_month_rate + "'," }
         if (req.body.enter_hours) { parameters += "   enter_hours = '" + req.body.enter_hours + "'," }
+        if (req.body.hour_rate) { parameters += "  hour_rate = '" + req.body.hour_rate + "'," }
         if (req.body.enter_months) { parameters += "   enter_months = '" + req.body.enter_months + "'," }
+        if (req.body.month_rate) { parameters += "  month_rate = '" + req.body.month_rate + "'," }
         if (req.body.project_status) { parameters += "   project_status = '" + req.body.project_status + "'," }
         if (req.body.related_to) { parameters += "   related_to = '" + req.body.related_to + "'," }
         if (req.body.description) { parameters += "   description = '" + req.body.description + "'," }
@@ -496,19 +504,19 @@ const deleteClientProject = async (req, res) => {
 const getProjectById = async (req, res) => {
     try {
         let id = req.params.id;
-        let tblName = "tbl_project";
-        let parameters1 = "*";
-        let condition1 = " client_id ='" +
+        let tblName = "tbl_project as p LEFT JOIN tbl_client as c ON p.client_id = c.id ";
+        let parameters1 = `p.*,concat(c.first_name," ",c.last_name) as related_to,c.profile_img`;
+        let condition1 = " p.id ='" +
             id +
-            "' AND flag='" +
+            "' AND p.flag='" +
             0 +
             "' ";
-        const queryResult = await commonService.sqlSelectQueryWithParametrs(
+        let queryResult = await commonService.sqlSelectQueryWithParametrs(
             tblName,
             parameters1,
             condition1
         );
-        if (queryResult.result.length > 0) {
+        if (queryResult.success) {
             res.status(200).send({
                 status: 200,
                 result: queryResult.result
@@ -529,6 +537,35 @@ const getProjectById = async (req, res) => {
     }
 }
 
+const projectList = async (req, res) => {
+    try {
+        let user_id = req.query.user_id ? req.query.user_id : "";
+        let query = `SELECT p.*, concat(c.first_name," ",c.last_name) as related_to, c.profile_img as Image  FROM tbl_project as p LEFT JOIN tbl_client as c ON p.client_id = c.id  WHERE p.flag = 0`;
+        console.log(user_id);
+        if (user_id) {
+            query += ` and p.user_id = ${user_id}`;
+        }
+        const queryResult = await commonService.sqlJoinQuery(query);
+        if (queryResult.success) {
+            res.status(200).send({
+                status: 200,
+                data: queryResult.result
+            });
+        } else {
+            res.status(500).send({
+                status: 500,
+                message: "Something went wrong!"
+            });
+        }
+    } catch (e) {
+        res.status(500).send({
+            status: 500,
+            message: "Something went wrong!",
+            error: e,
+        });
+    }
+}
+
 module.exports = {
     addClientInfo,
     updateClientInfo,
@@ -538,5 +575,6 @@ module.exports = {
     updateClientProject,
     deleteClientProject,
     getProjectById,
-    meettingBy_project
+    meettingBy_project,
+    projectList
 }
