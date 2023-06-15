@@ -11,7 +11,7 @@ router.post('/update_client_project/:id', clientController.updateClientProject);
 router.post('/delete_client_project/:id', clientController.deleteClientProject);
 router.get('/project_by_id/:id', clientController.getProjectById);
 router.get('/meettingBy_project', clientController.meettingBy_project);
-router.get('/project_list', clientController.projectList);
+router.post('/project_list', clientController.projectList);
 
 
 module.exports = router;
