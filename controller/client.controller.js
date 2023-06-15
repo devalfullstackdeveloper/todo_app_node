@@ -59,6 +59,7 @@ const addClientInfo = async (req, res) => {
                     country: payload.country,
                     website: payload.website,
                     client_source: payload.client_source,
+                    referral: payload.referral,
                     industry: payload.industry,
                     description: payload.description
                 };
@@ -110,6 +111,7 @@ const updateClientInfo = async (req, res) => {
         if (req.body.country) { parameters += "  country = '" + req.body.country + "'," }
         if (req.body.website) { parameters += "  website = '" + req.body.website + "'," }
         if (req.body.client_source) { parameters += "  client_source = '" + req.body.client_source + "'," }
+        if (req.body.referral) { parameters += "  referral = '" + req.body.referral + "'," }
         if (req.body.industry) { parameters += "  industry = '" + req.body.industry + "'," }
         if (req.body.description) { parameters += "  description = '" + req.body.description + "'," }
         parameters += "  updated_at = '" + updated_at + "' Where id = " + id + "";
@@ -539,11 +541,18 @@ const getProjectById = async (req, res) => {
 
 const projectList = async (req, res) => {
     try {
-        let user_id = req.query.user_id ? req.query.user_id : "";
+        let user_id = req.body.user_id;
+        let client_id = req.body.client_id;
+        let search_by = req.body.search_by;
         let query = `SELECT p.*, concat(c.first_name," ",c.last_name) as related_to, c.profile_img as Image  FROM tbl_project as p LEFT JOIN tbl_client as c ON p.client_id = c.id  WHERE p.flag = 0`;
-        console.log(user_id);
         if (user_id) {
             query += ` and p.user_id = ${user_id}`;
+        }
+        if (client_id) {
+            query += ` and p.client_id = ${client_id}`;
+        }
+        if (search_by) {
+            query += ` and concat(p.name," ",c.first_name," ",c.last_name) like "%${search_by}%"`;
         }
         const queryResult = await commonService.sqlJoinQuery(query);
         if (queryResult.success) {

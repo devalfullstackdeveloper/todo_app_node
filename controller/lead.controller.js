@@ -168,6 +168,7 @@ const leadAdd = async (req, res) => {
       country: payload.country,
       website: payload.website,
       lead_source: payload.lead_source,
+      referral: payload.referral,
       industry: payload.industry,
       assigned_employee: payload.assigned_employee
     };
@@ -175,8 +176,14 @@ const leadAdd = async (req, res) => {
 
     let parameters1 = "Count(id) As count";
 
-    let condition1 = " email='" +
-      payload.email +
+    let condition1 = " first_name='" +
+      payload.first_name +
+      "' AND last_name='" +
+      payload.last_name +
+      "' AND company='" +
+      payload.company +
+      "' AND lead_status='" +
+      payload.lead_status +
       "' AND flag='" +
       0 +
       "' ";
@@ -273,6 +280,8 @@ const leadEdit = async (req, res) => {
       req.body.website +
       "' ,  lead_source = '" +
       req.body.lead_source +
+      "' ,  referral = '" +
+      req.body.referral +
       "' ,  industry = '" +
       req.body.industry +
       "' ,  assigned_employee = '" +
