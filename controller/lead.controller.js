@@ -88,7 +88,7 @@ const showlead = async (req, res) => {
 
     let startPage = (pageNo * pageLength) - pageLength;
 
-    query = `${query} LIMIT ${startPage},${pageLength}`;
+    query = startPage ? `${query} LIMIT ${startPage},${pageLength}`:query;
     let queryResult = await commonService.sqlJoinQuery(query);
 
     let leadslist1 = [];
