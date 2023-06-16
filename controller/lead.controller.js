@@ -615,7 +615,7 @@ const followUpList = async (req, res) => {
       let relate = "";
       let relate1 = "";
       if (type && type == 1) {
-        relate += `SELECT concat(first_name," ",last_name) as lead_name, profile_img  FROM tbl_lead WHERE id = ${data[i].related_to} AND flag = 0`;
+        relate += `SELECT id, concat(first_name," ",last_name) as lead_name, profile_img  FROM tbl_lead WHERE id = ${data[i].related_to} AND flag = 0`;
       } else if (type && type == 2) {
         relate += `SELECT  concat(c.first_name," ",c.last_name) as client_name, profile_img FROM tbl_client as c WHERE c.id = ${data[i].related_to}  AND c.flag = 0`;
         relate1 += `SELECT name from tbl_project where user_id=${data[i].user_id} AND client_id=${data[i].client_id} AND id = ${data[i].project_id} AND flag = 0`
@@ -637,7 +637,7 @@ const followUpList = async (req, res) => {
         data[i].project = [];
 
       }
-      let query = await commonService.sqlJoinQuery(`(SELECT concat(u.first_name," ",u.last_name) as name, profile_img FROM tbl_user as u WHERE FIND_IN_SET(u.id, REPLACE(REPLACE((SELECT fu.attendees FROM tbl_followup as fu where fu.id = ${data[i].id}), '[', ''), ']', '')) > 0)`);
+      let query = await commonService.sqlJoinQuery(`(SELECT u.id , concat(u.first_name," ",u.last_name) as name, profile_img FROM tbl_user as u WHERE FIND_IN_SET(u.id, REPLACE(REPLACE((SELECT fu.attendees FROM tbl_followup as fu where fu.id = ${data[i].id}), '[', ''), ']', '')) > 0)`);
       if (query.result.length > 0) {
         data[i].attendees = query.result;
       } else {
