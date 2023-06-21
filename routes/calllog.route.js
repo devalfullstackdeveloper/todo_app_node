@@ -8,5 +8,5 @@ const router = express.Router();
 router.get('/callLogAdd',calllogController.callLog_Add)
 router.post('/callLogDelete/:id',calllogController.callLog_Delete)
 router.post('/callLogUpdate/:id',calllogController.callLog_Updated)
-
+router.post('/callLogList', calllogController.callLog_List);
 module.exports=router;
