@@ -3,6 +3,7 @@ const commonService = require("../services/common.services");
 const moment = require("moment/moment");
 const { isNull } = require("underscore");
 const { disable } = require("../server");
+const { query } = require("express");
 
 
 const showlead = async (req, res) => {
@@ -87,7 +88,7 @@ const showlead = async (req, res) => {
 
     let startPage = (pageNo * pageLength) - pageLength;
 
-    query = `${query} LIMIT ${startPage},${pageLength}`;
+    query = startPage ? `${query} LIMIT ${startPage},${pageLength}`:query;
     let queryResult = await commonService.sqlJoinQuery(query);
 
     let leadslist1 = [];
@@ -167,6 +168,7 @@ const leadAdd = async (req, res) => {
       country: payload.country,
       website: payload.website,
       lead_source: payload.lead_source,
+      referral: payload.referral,
       industry: payload.industry,
       assigned_employee: payload.assigned_employee
     };
@@ -174,8 +176,14 @@ const leadAdd = async (req, res) => {
 
     let parameters1 = "Count(id) As count";
 
-    let condition1 = " email='" +
-      payload.email +
+    let condition1 = " first_name='" +
+      payload.first_name +
+      "' AND last_name='" +
+      payload.last_name +
+      "' AND company='" +
+      payload.company +
+      "' AND lead_status='" +
+      payload.lead_status +
       "' AND flag='" +
       0 +
       "' ";
@@ -272,6 +280,8 @@ const leadEdit = async (req, res) => {
       req.body.website +
       "' ,  lead_source = '" +
       req.body.lead_source +
+      "' ,  referral = '" +
+      req.body.referral +
       "' ,  industry = '" +
       req.body.industry +
       "' ,  assigned_employee = '" +
@@ -461,89 +471,12 @@ const favouriteButton = async (req, res) => {
   }
 };
 
-//favourite button
-// const favouriteButton = async (req, res) => {
-//   try {
-//     let id = req.params.id;
-//     let parameters;
-
-//     let tblName = "tbl_lead";
-
-//     let parameters1 = "*";
-
-//     let condition1 = " id='" +
-//       id +
-//       "'";
-
-//     let queryResult1 = await commonService.sqlSelectQueryWithParametrs(
-//       tblName,
-//       parameters1,
-//       condition1
-//     );
-
-//     console.log(queryResult1.result);
-
-
-//     if (queryResult1.success) {
-
-//       if (queryResult1.result[0].favourite == "Yes") {
-//         parameters =
-//           "favourite= '" +
-//           "No" +
-//           "' Where id = " +
-//           id +
-//           "";
-
-//       }
-//       else {
-//         parameters =
-//           "favourite= '" +
-//           "Yes" +
-//           "' Where id = " +
-//           id +
-//           "";
-//       }
-//       let queryResult = await commonService.sqlUpdateQueryWithParametrs(
-//         tblName,
-//         parameters
-//       );
-//       if (queryResult.success) {
-//         res.status(200).send({
-//           status: 200,
-//           message: "favourite Record Changed",
-//         });
-//       } else {
-//         res.status(500).send({
-//           status: 500,
-//           message: "Something went wrong",
-//           error: queryResult.error,
-//         });
-//       }
-
-//     } else {
-//       res.status(500).send({
-//         status: 500,
-//         message: "Something went wrong",
-//         error: e,
-//       });
-//     }
-//   } catch (e) {
-//     res.status(500).send({
-//       status: 500,
-//       message: "Something went wrong!",
-//       error: e,
-//     });
-//   }
-// };
-
 const addFollowUp = async (req, res) => {
   try {
     let validationRule = {
       user_id: "required|string",
-      lead_id: "required|string",
       remainder: "required|string",
       related_to: "required|string",
-      related_to: "required|string"
     };
     let isvalidated = await commonService.validateRequest(
       req.body,
@@ -559,7 +492,7 @@ const addFollowUp = async (req, res) => {
       const payload = req.body;
       let tblName = "tbl_followup";
       let parameters = "*";
-      let condition = "user_id = '" + payload.user_id + "' AND lead_id = '" + payload.lead_id + "' AND remainder = '" + payload.remainder + "' AND related_to = '" + payload.related_to + "' AND link = '" + payload.link + "' AND attendees = '" + payload.attendees + "' AND flag = 0";
+      let condition = "user_id = '" + payload.user_id + "' AND remainder = '" + payload.remainder + "' AND related_to = '" + payload.related_to + "' AND link = '" + payload.link + "' AND attendees = '" + payload.attendees + "' AND flag = 0";
       let queryResult = await commonService.sqlSelectQueryWithParametrs(
         tblName,
         parameters,
@@ -576,18 +509,22 @@ const addFollowUp = async (req, res) => {
           },
         });
       } else {
-        parameters = {
+        let paratameters = {
           user_id: payload.user_id,
           lead_id: payload.lead_id,
+          client_id: payload.client_id,
+          project_id: payload.project_id,
+          followup_for: payload.followup_for,
           remainder: payload.remainder,
           description: payload.description,
           link: payload.link,
           related_to: payload.related_to,
-          attendees: payload.attendees
+          attendees: payload.attendees,
+          outcomes: payload.outcomes
         };
         let queryResult = await commonService.sqlQueryWithParametrs(
           tblName,
-          parameters
+          paratameters
         );
         if (queryResult.success) {
           res.status(200).send({
@@ -621,7 +558,6 @@ const followUpListBy_lead = async (req, res) => {
     condition += " flag='" + 0 + "' ORDER BY remainder DESC";
 
     let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
-    console.log(query);
     if (query.success) {
       res.status(200).send({
         status: 200,
@@ -642,125 +578,83 @@ const followUpListBy_lead = async (req, res) => {
     });
   }
 }
+
 const followUpList = async (req, res) => {
   try {
-    const params = req.params.type;
-    if (params == "today") {
-      const date = new Date()
-      const formatDate = moment(date).format('YYYY-MM-DD')
-      const tblName = "tbl_followup"
-      const parameter = "*"
-      let condition = ""; //= req.headers.user_id ? "user_id="+req.headers.user_id+" AND" : " " + req.headers.lead_id ? "lead_id="+req.headers.lead_id+" AND" : " " + "Date(remainder) = '" + formatDate +"'";
-      if (req.headers.user_id) { condition += "user_id=" + req.headers.user_id + " AND " }
-      if (req.headers.lead_id) { condition += " lead_id=" + req.headers.lead_id + " AND " }
-      condition += " Date(remainder) = '" + formatDate + "'";
-      // const condition = `user_id=${req.headers.user_id} AND lead_id=${req.headers.lead_id} AND Date(remainder) ='${formatDate}'`
-      console.log(condition);
-      let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
-      if (query.success) {
-        res.status(200).send({
-          status: 200,
-          data: query.result
-        });
-      } else {
-        res.status(500).send({
-          status: 500,
-          message: "No Record Found.",
-          error: query.error,
-        });
+    let sort = req.params.type;
+    let payload = req.body;
+    let type = 1;
+    let query = `SELECT f.* FROM tbl_followup as f `;
+    if (payload.user_id && payload.lead_id) {
+      type = 1;
+    } else if (payload.user_id && payload.client_id && payload.project_id) {
+      type = 2;
+    }
+    if (payload.user_id) { query += "WHERE f.flag = 0 AND f.user_id=" + payload.user_id + " AND " } else { query += "WHERE f.flag = 0 AND " }
+    if (payload.lead_id) { query += " f.lead_id=" + payload.lead_id + " AND " }
+    if (payload.client_id) { query += " f.client_id=" + payload.client_id + " AND " }
+    if (payload.project_id) { query += " f.project_id=" + payload.project_id + " AND " }
+    query += "f.followup_for=" + type;
+    if (sort == 1 || sort == 2 || sort == 3 || sort == 4) {
+      query += " AND "
+    }
+    let date = moment().format('YYYY-MM-DD');
+    if (sort == 1) {
+      query += `  Date(remainder)='${date}'`;
+    } else if (sort == 2) {
+      query += `  Date(remainder) < '${date}' AND outcomes IS NULL`;
+    } else if (sort == 3) {
+      query += `  Date(remainder) > '${date}'`;
+    } else if (sort == 4) {
+      query += `  Date(remainder) < '${date}' AND outcomes IS NOT NULL`;
+    }
+    let queryResult = await commonService.sqlJoinQuery(query)
+    let data = [];
+    data = queryResult.result;
+    for (var i = 0; i < data.length; i++) {
+      let relate = "";
+      let relate1 = "";
+      if (type && type == 1) {
+        relate += `SELECT id, concat(first_name," ",last_name) as lead_name, profile_img  FROM tbl_lead WHERE id = ${data[i].related_to} AND flag = 0`;
+      } else if (type && type == 2) {
+        relate += `SELECT  concat(c.first_name," ",c.last_name) as client_name, profile_img FROM tbl_client as c WHERE c.id = ${data[i].related_to}  AND c.flag = 0`;
+        relate1 += `SELECT name from tbl_project where user_id=${data[i].user_id} AND client_id=${data[i].client_id} AND id = ${data[i].project_id} AND flag = 0`
       }
-    } else if (params == "overdue") {
-      const date = new Date()
-      const formatDate = moment(date).format('YYYY-MM-DD')
-      const tblName = "tbl_followup"
-      const parameter = "*"
-      let condition = "";
-      // `user_id=${req.headers.user_id} AND lead_id=${req.headers.lead_id} AND Date(remainder) < '${formatDate}' AND outcomes IS NULL`
-      if (req.headers.user_id) { condition += "user_id=" + req.headers.user_id + " AND " }
-      if (req.headers.lead_id) { condition += " lead_id=" + req.headers.lead_id + " AND " }
-      condition += " Date(remainder) < '" + formatDate + "' AND outcomes IS NULL";
-      let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
-      console.log(query);
-      if (query.success) {
-        res.status(200).send({
-          status: 200,
-          data: query.result
-        });
-      } else {
-        res.status(500).send({
-          status: 500,
-          message: "No Record Found.",
-          error: query.error,
-        });
+      let related_to = await commonService.sqlJoinQuery(relate);
+      let project;
+      if (relate1 != "") {
+        project = await commonService.sqlJoinQuery(relate1);
       }
-
-    } else if (params == "upcoming") {
-      const date = new Date()
-      const formatDate = moment(date).format('YYYY-MM-DD')
-      const tblName = "tbl_followup"
-      const parameter = "*"
-      let condition = "";
-      // `user_id=${req.headers.user_id} AND lead_id=${req.headers.lead_id} AND Date(remainder) > '${formatDate}'`
-      if (req.headers.user_id) { condition += "user_id=" + req.headers.user_id + " AND " }
-      if (req.headers.lead_id) { condition += " lead_id=" + req.headers.lead_id + " AND " }
-      condition += " Date(remainder) > '" + formatDate + "'";
-      let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
-      if (query.success) {
-        res.status(200).send({
-          status: 200,
-          data: query.result
-        });
+      if (related_to.result.length > 0) {
+        data[i].related_to = related_to.result;
       } else {
-        res.status(500).send({
-          status: 500,
-          message: "No Record Found.",
-          error: query.error,
-        });
+        data[i].related_to = [];
+
       }
-    } else if (params == "completed") {
-      const date = new Date()
-      const formatDate = moment(date).format('YYYY-MM-DD')
-      const tblName = "tbl_followup"
-      const parameter = "*"
-      let condition = "";
-      // `user_id=${req.headers.user_id} AND lead_id=${req.headers.lead_id} AND outcomes IS NOT NULL`
-      if (req.headers.user_id) { condition += "user_id=" + req.headers.user_id + " AND " }
-      if (req.headers.lead_id) { condition += " lead_id=" + req.headers.lead_id + " AND " }
-      condition += " outcomes IS NOT NULL ";
-      let query = await commonService.sqlSelectQueryWithParametrs(tblName, parameter, condition)
-      if (query.success) {
-        res.status(200).send({
-          status: 200,
-          data: query.result
-        });
+      if (project && project.result.length > 0) {
+        data[i].project = project.result
+      } else if (project) {
+        data[i].project = [];
+
+      }
+      let query = await commonService.sqlJoinQuery(`(SELECT u.id , concat(u.first_name," ",u.last_name) as name, profile_img FROM tbl_user as u WHERE FIND_IN_SET(u.id, REPLACE(REPLACE((SELECT fu.attendees FROM tbl_followup as fu where fu.id = ${data[i].id}), '[', ''), ']', '')) > 0)`);
+      if (query.result.length > 0) {
+        data[i].attendees = query.result;
       } else {
-        res.status(500).send({
-          status: 500,
-          message: "No Record Found.",
-          error: query.error,
-        });
+        data[i].attendees = [];
+
       }
-
-    }else{
-      const tblName ="tbl_followup"
-      const parameter="*"
-      const condition=""
-
-      let query = await commonService.sqlSelectQueryWithParametrs(tblName,parameter,condition)
-
-      if (query.success) {
-        res.status(200).send({
-          status: 200,
-          data: query.result
-        });
-      } else {
-        res.status(500).send({
-          status: 500,
-          message: "No Record Found.",
-          error: query.error,
-        });
-      }
-
+    }
+    if (queryResult.success) {
+      res.status(200).send({
+        status: 200,
+        data: data
+      });
+    } else {
+      res.status(500).send({
+        status: 500,
+        message: "No Record Found.",
+      });
     }
   } catch (e) {
     res.status(500).send({
@@ -772,42 +666,118 @@ const followUpList = async (req, res) => {
 }
 const activityHistory = async (req, res) => {
   try {
+    const payload = req.body;
+    let type1res = "";
+    let type2res = "";
+    let type3res = "";
+    let type4res = "";
+    let type = 0;
+    if (payload.user_id && payload.lead_id) {
+      type = 1;
+    }
+    if (payload.user_id && payload.client_id && payload.project_id) {
+      type = 3;
+    } else if (payload.user_id && payload.client_id) {
+      type = 2;
+    }
+    let type1 = `select * from tbl_followup`
+    let type2 = `select * from tbl_attachments`
+    let type3 = `select * from tbl_notes`
+    let type4 = `select * from tbl_project`
+    let user = `select * from tbl_user where id = ${payload.user_id} and flag = 0`;
+    if (type == 1) {
+      let query = ` WHERE user_id = ${payload.user_id} AND lead_id = ${payload.lead_id} AND flag = 0`
+      type1 += query + " ORDER BY updated_at";
+      type2 += query + " ORDER BY updated_at";
+      type3 += query + " ORDER BY update_date";
+      type1res = await commonService.sqlJoinQuery(type1);
+      type2res = await commonService.sqlJoinQuery(type2);
+      type3res = await commonService.sqlJoinQuery(type3);
+    } else if (type == 2) {
+      type4 += ` WHERE user_id = ${payload.user_id} AND client_id = ${payload.client_id} AND flag = 0 ORDER BY updated_at`;
+      type4res = await commonService.sqlJoinQuery(type4);
+    }else if (type == 3) {
+      let query = ` WHERE user_id = ${payload.user_id} AND client_id = ${payload.client_id} AND project_id = ${payload.project_id} AND flag = 0`
+      type1 += query + " ORDER BY updated_at";
+      type2 += query + " ORDER BY updated_at";
+      type3 += query + " ORDER BY update_date";
+      type1res = await commonService.sqlJoinQuery(type1);
+      type2res = await commonService.sqlJoinQuery(type2);
+      type3res = await commonService.sqlJoinQuery(type3);
+    }
 
-    let query = await commonService.sqlJoinQuery(`SELECT tbl_followup.description,tbl_followup.outcomes,tbl_followup.created_at, tbl_user.first_name as Name,tbl_followup.completed,tbl_notes.note_description,tbl_attachments.name from tbl_followup INNER JOIN tbl_user ON tbl_user.id = tbl_followup.user_id INNER JOIN tbl_notes ON tbl_followup.user_id = tbl_notes.id INNER JOIN tbl_attachments ON tbl_followup.id = tbl_attachments.project_id ORDER BY created_at ASC`)
-    //  if(req.headers.client_id || req.headers.project_id){
-    //    console.log(query.result); 
-    //  }
+    let userres = await commonService.sqlJoinQuery(user);
 
-    let data = query.result;
-    let newData = []
-    data.map((dat) => {
-      if (dat.name === "") {
-        newData.push(dat)
-      } else {
-        dat.description = "", dat.note_description = ""
-        let { ...others } = dat
-        newData.push(others)
-      }
-
-      if (dat.outcomes && dat.outcomes !== null) {
-        dat.completed = true;
-      } else {
-        dat.completed = false;
-      }
-    })
-    if (query.success) {
+    let data = [];
+    if (type1res.success && type2res.success && type3res.success) {
+      type1res.result.map(e => {
+        e.uf_name = userres.result[0].first_name;
+        e.ul_name = userres.result[0].last_name;
+        e.type = 1;
+        data.push(e);
+      });
+      type2res.result.map(e => {
+        e.uf_name = userres.result[0].first_name;
+        e.ul_name = userres.result[0].last_name;
+        e.type = 2;
+        data.push(e);
+      });
+      type3res.result.map(e => {
+        e.uf_name = userres.result[0].first_name;
+        e.ul_name = userres.result[0].last_name;
+        e.updated_at = e.update_date;
+        e.type = 3;
+        data.push(e);
+      });
       res.status(200).send({
         status: 200,
-        data: newData,
+        data: data
+      });
+    } else if (type4res.success) {
+      type4res.result.map(e => {
+        e.uf_name = userres.result[0].first_name;
+        e.ul_name = userres.result[0].last_name;
+        if (moment(e.created_at).format('YYYY-MM-DD hh:mm:ss') == moment(e.updated_at).format('YYYY-MM-DD hh:mm:ss')) {
+          e.project_flag = "new project added";
+        } else {
+          e.project_flag = "project updated";
+        }
+        data.push(e);
+      });
+      res.status(200).send({
+        status: 200,
+        data: data
+      });
+    } else if (type == 3) {
+      type1res.result.map(e => {
+        e.uf_name = userres.result[0].first_name;
+        e.ul_name = userres.result[0].last_name;
+        e.type = 1;
+        data.push(e);
+      });
+      type2res.result.map(e => {
+        e.uf_name = userres.result[0].first_name;
+        e.ul_name = userres.result[0].last_name;
+        e.type = 2;
+        data.push(e);
+      });
+      type3res.result.map(e => {
+        e.uf_name = userres.result[0].first_name;
+        e.ul_name = userres.result[0].last_name;
+        e.updated_at = e.update_date;
+        e.type = 3;
+        data.push(e);
+      });
+      res.status(200).send({
+        status: 200,
+        data: data
       });
     } else {
       res.status(500).send({
         status: 500,
         message: "No Record Found.",
-        error: query.error,
       });
     }
-
   } catch (e) {
     res.status(500).send({
       status: 500,
@@ -850,18 +820,22 @@ const followUpList_Datewise = async (req, res) => {
 }
 const lead_created_homePage = async (req, res) => {
   try {
-
-    const id = req.query.user_id
-    let  payload =req.body
-    let from_to ={
-      from_date : payload.from_date,
-      to_date : payload.to_date
+    let month = moment().format('MM');
+    let fromYear;
+    let toYear;
+    if (month > 3) {
+      fromYear = moment().format('YYYY');
+      toYear = parseInt(moment().format('YYYY')) + 1;
+    } else {
+      fromYear = parseInt(moment().format('YYYY')) - 1;
+      toYear = moment().format('YYYY');
     }
-    let query = await commonService.sqlJoinQuery(`SELECT tls.lead_source_name,CASE WHEN tl.countlead_source is null then 0 ELSE tl.countlead_source END AS COUNT from tbl_lead_source tls LEFT JOIN (SELECT lead_source,COUNT(lead_source) as countlead_source from tbl_lead  WHERE  tbl_lead.user_id = ${id} AND tbl_lead.create_date BETWEEN ${from_to.from_date} AND ${from_to.to_date} GROUP BY lead_source)tl ON tl.lead_source=tls.id ;`)
+    let query = await commonService.sqlJoinQuery(`SELECT ls.lead_source_name, (SELECT COUNT(id) FROM tbl_lead as l where Date(l.create_date) between '${fromYear}-03-31' AND '${toYear}-04-01' AND l.lead_source = ls.lead_source_name AND l.flag = 0) as count FROM tbl_lead_source as ls where ls.status = 1`)
     if (query.success) {
       res.status(200).send({
         status: 200,
-        data: query.result
+        data: query.result,
+        CFY: fromYear + "-" + toYear
       });
     } else {
       res.status(500).send({
@@ -879,15 +853,43 @@ const lead_created_homePage = async (req, res) => {
     });
   }
 }
+
 const lead_project = async (req, res) => {
   try {
-    let id = req.query.user_id;
-    let query = await commonService.sqlJoinQuery(`SELECT COUNT(id) AS ID,MONTH(created_at) AS MONTH  FROM tbl_project GROUP BY MONTH(created_at)`)
-    if (id) { " WHERE user_id=" + id }
+    let month = moment().format('MM');
+    let fromYear;
+    let toYear;
+    if (month > 3) {
+      fromYear = moment().format('YYYY');
+      toYear = parseInt(moment().format('YYYY')) + 1;
+    } else {
+      fromYear = parseInt(moment().format('YYYY')) - 1;
+      toYear = moment().format('YYYY');
+    }
+    let query = await commonService.sqlJoinQuery(`SELECT COUNT(id) AS Count, concat(Year(created_at),"-",MONTH(created_at),"-01") AS Date  FROM tbl_project  where Date(created_at) BETWEEN '${fromYear}-03-31' AND '${toYear}-04-01' AND flag = 0  GROUP BY concat(Year(created_at),"-",MONTH(created_at),"-01") `)
+    let Month = [4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3];
+    let data = [];
+    query.result.map(item1 => {
+      let m = item1.Date.split('-')[1];
+      if (m.length == 1) {
+        m = "0" + item1.Date.split('-')[1];
+      } else {
+        m = item1.Date.split('-')[1];
+      }
+      item1.Date = item1.Date.split('-')[0] +"-"+ m +"-"+ item1.Date.split('-')[2];
+    })
+    Month.map(item => {
+      query.result.map(item1 => {
+        if (item == moment(item1.Date).format('MM')) {
+          data.push(item1)
+        }
+      })
+    });
     if (query.success) {
       res.status(200).send({
         status: 200,
-        data: query.result
+        data: data,
+        CFY: fromYear + "-" + toYear
       });
     } else {
       res.status(500).send({
@@ -907,13 +909,23 @@ const lead_project = async (req, res) => {
 
 }
 const lead_converted = async (req, res) => {
-
   try {
-    let query = await commonService.sqlJoinQuery(`  SELECT u.id,concat(u.first_name," ",u.last_name) AS FullName,(SELECT COUNT(l.id ) FROM tbl_client as l WHERE l.user_id = u.id AND l.lead_id > 0) AS Total_Count FROM tbl_user AS u`)
+    let month = moment().format('MM');
+    let fromYear;
+    let toYear;
+    if (month > 3) {
+      fromYear = moment().format('YYYY');
+      toYear = parseInt(moment().format('YYYY')) + 1;
+    } else {
+      fromYear = parseInt(moment().format('YYYY')) - 1;
+      toYear = moment().format('YYYY');
+    }
+    let query = await commonService.sqlJoinQuery(`SELECT u.id, u.first_name as name,(SELECT COUNT(l.id ) FROM tbl_lead as l WHERE l.lead_status = 'Qualified' AND l.user_id = u.id AND Date(l.create_date) between '${fromYear}-03-31' AND '${toYear}-04-01' AND l.flag=0) AS Total_Converted FROM tbl_user AS u where u.role_id = 2 AND u.flag = 0`)
     if (query.success) {
       res.status(200).send({
         status: 200,
-        data: query.result
+        data: query.result,
+        CFY: fromYear + "-" + toYear
       });
     } else {
       res.status(500).send({
@@ -939,13 +951,15 @@ const updateFollowUp = async (req, res) => {
     const updated_at = moment().format("YYYY-MM-DD hh:mm:ss").toString();
     let parameters = "";
     if (req.body.lead_id) { parameters += "  lead_id = '" + req.body.lead_id + "'," }
+    if (req.body.client_id) { parameters += "  client_id = '" + req.body.client_id + "'," }
+    if (req.body.project_id) { parameters += "  project_id = '" + req.body.project_id + "'," }
+    if (req.body.followup_for) { parameters += "  followup_for = '" + req.body.followup_for + "'," }
     if (req.body.remainder) { parameters += "  remainder = '" + req.body.remainder + "'," }
     if (req.body.description) { parameters += "  description = '" + req.body.description + "'," }
     if (req.body.link) { parameters += "  link = '" + req.body.link + "'," }
     if (req.body.related_to) { parameters += "  related_to = '" + req.body.related_to + "'," }
     if (req.body.attendees) { parameters += "  attendees = '" + req.body.attendees + "'," }
     if (req.body.outcomes) { parameters += "  outcomes = '" + req.body.outcomes + "'," }
-    if (req.body.completed) { parameters += "  completed = '" + req.body.completed + "'," }
     parameters += "  updated_at = '" + updated_at + "' Where id = " + id + "";
     let tblName = "tbl_followup";
     let parameters1 = "Count(id) As count";
@@ -1100,6 +1114,49 @@ const priorityList = async (req, res) => {
   }
 }
 
+const deletefollowup = async (req, res) => {
+  try {
+    let id = req.params.id;
+    let query = `SELECT * FROM tbl_followup WHERE id = ${id}`;
+    let queryResult = await commonService.sqlJoinQuery(query);
+    if (queryResult.result.length > 0) {
+      const updated_at = moment().format("YYYY-MM-DD hh:mm:ss").toString();
+      let parameters = "flag = 1" + " ,  updated_at = '" +
+        updated_at +
+        "' Where id = " +
+        id +
+        "";
+      let tblName = "tbl_followup";
+      let queryResult = await commonService.sqlUpdateQueryWithParametrs(
+        tblName,
+        parameters
+      );
+      if (queryResult.result.affectedRows > 0) {
+        res.status(200).send({
+          status: 200,
+          message: "Record Deleted Successfully"
+        });
+      } else {
+        res.status(500).send({
+          status: 500,
+          message: "Something went wrong!"
+        });
+      }
+    } else {
+      res.status(500).send({
+        status: 500,
+        message: "No Record Found"
+      });
+    }
+  } catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+}
+
 module.exports = {
   showlead,
   leadAdd,
@@ -1108,7 +1165,6 @@ module.exports = {
   favouriteButton,
   addFollowUp,
   updateFollowUp,
-  // followupList,
   statusList,
   industriesList,
   priorityList,
@@ -1119,7 +1175,6 @@ module.exports = {
   followUpList_Datewise,
   lead_created_homePage,
   lead_converted,
-  lead_project
-
-
+  lead_project,
+  deletefollowup
 };

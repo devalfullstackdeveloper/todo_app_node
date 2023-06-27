@@ -4,26 +4,24 @@ const commonService = require("../services/common.services");
 
 const showNotes = async (req, res) => {
   try {
-      let uid=req.query.user_id;
-      let pid=req.query.project_id;
-      let lid=req.query.lead_id;
-      let cid=req.query.client_id;
-      let queryResult1;
-      if(lid){
-       queryResult1 =`SELECT n.*,concat(l.first_name," ",l.last_name) AS Lead_Name from tbl_notes AS n JOIN tbl_lead AS l ON n.lead_id = l.id WHERE`;
-       if(lid){ queryResult1+= " n.lead_id="+lid+""}
-      }
-      if(cid && pid){
-        queryResult1=`SELECT n.*,p.name AS Project_Name from tbl_notes AS n JOIN tbl_project AS p ON n.project_id = p.id WHERE`
-        if(pid){ queryResult1+= " n.project_id="+pid+""}
-        if(cid){ queryResult1+= " AND n.client_id="+cid+""}
-      }
-     if(uid){ queryResult1+= " AND n.user_id="+uid+""}
-     console.log(queryResult1);
-      console.log(uid);
-      let queryResult= await commonService.sqlJoinQuery(queryResult1)
-  
-      if (queryResult.success) {
+    let uid = req.query.user_id;
+    let pid = req.query.project_id;
+    let lid = req.query.lead_id;
+    let cid = req.query.client_id;
+    let queryResult1;
+    if (lid) {
+      queryResult1 = `SELECT n.*,concat(l.first_name," ",l.last_name) AS Lead_Name from tbl_notes AS n LEFT JOIN tbl_lead AS l ON n.lead_id = l.id WHERE n.flag = 0 `;
+      if (lid) { queryResult1 += "AND n.lead_id=" + lid + "" }
+    }
+    if (cid && pid) {
+      queryResult1 = `SELECT n.*,p.name AS Project_Name from tbl_notes AS n LEFT JOIN tbl_project AS p ON n.project_id = p.id WHERE n.flag = 0 `
+      if (pid) { queryResult1 += "AND n.project_id=" + pid + "" }
+      if (cid) { queryResult1 += " AND n.client_id=" + cid + "" }
+    }
+    if (uid) { queryResult1 += " AND n.user_id=" + uid + "" }
+    let queryResult = await commonService.sqlJoinQuery(queryResult1)
+
+    if (queryResult.success) {
       res.status(200).send({
         status: 200,
         data: queryResult.result,
@@ -150,7 +148,7 @@ const noteEdit = async (req, res) => {
     if (req.body.client_id) { parameters += "client_id= '" + req.body.client_id + "'," }
     if (req.body.user_id) { parameters += "user_id= '" + req.body.user_id + "'," }
     if (req.body.notes_for) { parameters += "notes_for= '" + req.body.notes_for + "'," }
-    if(req.body.project_id){ parameters += "project_id= '" + req.body.project_id + "',"}
+    if (req.body.project_id) { parameters += "project_id= '" + req.body.project_id + "'," }
     parameters += "  update_date = '" + todayDate1 + "' Where id = " + id + "";
 
     let tblName = "tbl_notes";
