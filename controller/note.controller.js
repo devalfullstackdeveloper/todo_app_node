@@ -257,7 +257,7 @@ const noteDelete = async (req, res) => {
       message: "Something went wrong1!",
       error: e,
     });
-  }
+  } 
 };
 
 module.exports = {
@@ -268,3 +268,4 @@ module.exports = {
   showNotes
 
 };
+ 
