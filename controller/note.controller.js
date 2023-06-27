@@ -10,12 +10,12 @@ const showNotes = async (req, res) => {
     let cid = req.query.client_id;
     let queryResult1;
     if (lid) {
-      queryResult1 = `SELECT n.*,concat(l.first_name," ",l.last_name) AS Lead_Name from tbl_notes AS n JOIN tbl_lead AS l ON n.lead_id = l.id WHERE`;
-      if (lid) { queryResult1 += " n.lead_id=" + lid + "" }
+      queryResult1 = `SELECT n.*,concat(l.first_name," ",l.last_name) AS Lead_Name from tbl_notes AS n LEFT JOIN tbl_lead AS l ON n.lead_id = l.id WHERE n.flag = 0 `;
+      if (lid) { queryResult1 += "AND n.lead_id=" + lid + "" }
     }
     if (cid && pid) {
-      queryResult1 = `SELECT n.*,p.name AS Project_Name from tbl_notes AS n JOIN tbl_project AS p ON n.project_id = p.id WHERE`
-      if (pid) { queryResult1 += " n.project_id=" + pid + "" }
+      queryResult1 = `SELECT n.*,p.name AS Project_Name from tbl_notes AS n LEFT JOIN tbl_project AS p ON n.project_id = p.id WHERE n.flag = 0 `
+      if (pid) { queryResult1 += "AND n.project_id=" + pid + "" }
       if (cid) { queryResult1 += " AND n.client_id=" + cid + "" }
     }
     if (uid) { queryResult1 += " AND n.user_id=" + uid + "" }

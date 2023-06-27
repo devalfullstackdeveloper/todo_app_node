@@ -664,42 +664,126 @@ const followUpList = async (req, res) => {
     });
   }
 }
-
 const activityHistory = async (req, res) => {
   try {
+    const payload = req.body;
+    let type1res = "";
+    let type2res = "";
+    let type3res = "";
+    let type4res = "";
+    let type = 0;
+    if (payload.user_id && payload.lead_id) {
+      type = 1;
+    }
+    if (payload.user_id && payload.client_id && payload.project_id) {
+      type = 3;
+    } else if (payload.user_id && payload.client_id) {
+      type = 2;
+    }
+    let type1 = `select * from tbl_followup`
+    let type2 = `select * from tbl_attachments`
+    let type3 = `select * from tbl_notes`
+    let type4 = `select * from tbl_project`
+    let user = `select * from tbl_user where id = ${payload.user_id} and flag = 0`;
+    if (type == 1) {
+      let query = ` WHERE user_id = ${payload.user_id} AND lead_id = ${payload.lead_id} AND flag = 0`
+      type1 += query + " ORDER BY updated_at DESC ";
+      type2 += query + " ORDER BY updated_at DESC ";
+      type3 += query + " ORDER BY update_date DESC ";
+      type1res = await commonService.sqlJoinQuery(type1);
+      type2res = await commonService.sqlJoinQuery(type2);
+      type3res = await commonService.sqlJoinQuery(type3);
+    } else if (type == 2) {
+      type4 += ` WHERE user_id = ${payload.user_id} AND client_id = ${payload.client_id} AND flag = 0 ORDER BY updated_at DESC `;
+      type4res = await commonService.sqlJoinQuery(type4);
+    }else if (type == 3) {
+      let query = ` WHERE user_id = ${payload.user_id} AND client_id = ${payload.client_id} AND project_id = ${payload.project_id} AND flag = 0`
+      type1 += query + " ORDER BY updated_at DESC ";
+      type2 += query + " ORDER BY updated_at DESC ";
+      type3 += query + " ORDER BY update_date DESC ";
+      type1res = await commonService.sqlJoinQuery(type1);
+      type2res = await commonService.sqlJoinQuery(type2);
+      type3res = await commonService.sqlJoinQuery(type3);
+    }
 
-    let query = await commonService.sqlJoinQuery(`SELECT tbl_followup.description,tbl_followup.outcomes,tbl_followup.created_at, tbl_user.first_name as Name,tbl_followup.completed,tbl_notes.note_description,tbl_attachments.name from tbl_followup INNER JOIN tbl_user ON tbl_user.id = tbl_followup.user_id INNER JOIN tbl_notes ON tbl_followup.user_id = tbl_notes.id INNER JOIN tbl_attachments ON tbl_followup.id = tbl_attachments.project_id ORDER BY created_at ASC`)
+    let userres = await commonService.sqlJoinQuery(user);
 
-    let data = query.result;
-    let newData = []
-    data.map((dat) => {
-      if (dat.name === "") {
-        newData.push(dat)
-      } else {
-        dat.description = "", dat.note_description = ""
-        let { ...others } = dat
-        newData.push(others)
-      }
-
-      if (dat.outcomes && dat.outcomes !== null) {
-        dat.completed = true;
-      } else {
-        dat.completed = false;
-      }
-    })
-    if (query.success) {
+    let data = [];
+    if (type1res.success && type2res.success && type3res.success) {
+      type1res.result.map(e => {
+        e.uf_name = userres.result[0].first_name;
+        e.ul_name = userres.result[0].last_name;
+        e.type = 1;
+        data.push(e);
+      });
+      type2res.result.map(e => {
+        e.uf_name = userres.result[0].first_name;
+        e.ul_name = userres.result[0].last_name;
+        e.type = 2;
+        data.push(e);
+      });
+      type3res.result.map(e => {
+        e.uf_name = userres.result[0].first_name;
+        e.ul_name = userres.result[0].last_name;
+        e.updated_at = e.update_date;
+        e.type = 3;
+        data.push(e);
+      });
+      data.sort((a, b) => {
+        return new Date(b.updated_at) - new Date(a.updated_at);
+      });
       res.status(200).send({
         status: 200,
-        data: newData,
+        data: data
+      });
+    } else if (type4res.success) {
+      type4res.result.map(e => {
+        e.uf_name = userres.result[0].first_name;
+        e.ul_name = userres.result[0].last_name;
+        if (moment(e.created_at).format('YYYY-MM-DD hh:mm:ss') == moment(e.updated_at).format('YYYY-MM-DD hh:mm:ss')) {
+          e.project_flag = "new project added";
+        } else {
+          e.project_flag = "project updated";
+        }
+        data.push(e);
+      });
+      res.status(200).send({
+        status: 200,
+        data: data
+      });
+    } else if (type == 3) {
+      type1res.result.map(e => {
+        e.uf_name = userres.result[0].first_name;
+        e.ul_name = userres.result[0].last_name;
+        e.type = 1;
+        data.push(e);
+      });
+      type2res.result.map(e => {
+        e.uf_name = userres.result[0].first_name;
+        e.ul_name = userres.result[0].last_name;
+        e.type = 2;
+        data.push(e);
+      });
+      type3res.result.map(e => {
+        e.uf_name = userres.result[0].first_name;
+        e.ul_name = userres.result[0].last_name;
+        e.updated_at = e.update_date;
+        e.type = 3;
+        data.push(e);
+      });
+      data.sort((a, b) => {
+        return new Date(b.updated_at) - new Date(a.updated_at);
+      });
+      res.status(200).send({
+        status: 200,
+        data: data
       });
     } else {
       res.status(500).send({
         status: 500,
         message: "No Record Found.",
-        error: query.error,
       });
     }
-
   } catch (e) {
     res.status(500).send({
       status: 500,

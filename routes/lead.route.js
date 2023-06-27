@@ -18,7 +18,7 @@ router.get('/followUpListBy_lead', leadController.followUpListBy_lead);
 router.post('/followUpList_Datewise', leadController.followUpList_Datewise);
 router.get('/lead_created_homePage', leadController.lead_created_homePage);
 router.get('/lead_converted', leadController.lead_converted);
-router.get('/activityHistory', leadController.activityHistory);
+router.post('/activityHistory', leadController.activityHistory);
 router.get('/lead_project', leadController.lead_project);
 router.post('/update_followup/:id', leadController.updateFollowUp);
 router.get('/priority_list/:event', leadController.priorityList);
