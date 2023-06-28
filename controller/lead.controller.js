@@ -779,9 +779,10 @@ const activityHistory = async (req, res) => {
         data: data
       });
     } else {
-      res.status(500).send({
-        status: 500,
-        message: "No Record Found.",
+      res.status(200).send({
+        status: 200,
+        // message: "No Record Found.",
+        data: data
       });
     }
   } catch (e) {
