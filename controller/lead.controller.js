@@ -873,7 +873,23 @@ const lead_project = async (req, res) => {
       fromYear = parseInt(moment().format('YYYY')) - 1;
       toYear = moment().format('YYYY');
     }
-    let query = await commonService.sqlJoinQuery(`SELECT COUNT(id) AS Count, concat(Year(created_at),"-",MONTH(created_at),"-01") AS Date  FROM tbl_project  where Date(created_at) BETWEEN '${fromYear}-03-31' AND '${toYear}-04-01' AND flag = 0  GROUP BY concat(Year(created_at),"-",MONTH(created_at),"-01") `)
+    let query = await commonService.sqlJoinQuery(`SELECT COUNT(tbl_project.id) AS Count, CONCAT(Year(months.date), "-", MONTH(months.date), "-01") AS Date
+    FROM (
+        SELECT '${fromYear}-03-31' + INTERVAL (seq.n + (10 * seq2.n) + (100 * seq3.n)) MONTH AS date
+        FROM (
+            SELECT 0 AS n UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9
+        ) AS seq
+        CROSS JOIN (
+            SELECT 0 AS n UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9
+        ) AS seq2
+        CROSS JOIN (
+            SELECT 0 AS n UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9
+        ) AS seq3
+    ) AS months
+    LEFT JOIN tbl_project ON CONCAT(YEAR(tbl_project.created_at), "-", MONTH(tbl_project.created_at), "-01") = CONCAT(YEAR(months.date), "-", MONTH(months.date), "-01") AND tbl_project.flag = 0
+    WHERE months.date BETWEEN '${fromYear}-03-31' AND '${toYear}-04-01'
+    GROUP BY CONCAT(Year(months.date), "-", MONTH(months.date), "-01")
+    ORDER BY CONCAT(Year(months.date), "-", MONTH(months.date), "-01"); `)
     let Month = [4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3];
     let data = [];
     query.result.map(item1 => {
