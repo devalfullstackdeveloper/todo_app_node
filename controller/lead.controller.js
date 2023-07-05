@@ -637,7 +637,7 @@ const followUpList = async (req, res) => {
         data[i].project = [];
 
       }
-      let query = await commonService.sqlJoinQuery(`(SELECT u.id , concat(u.first_name," ",u.last_name) as name, profile_img FROM tbl_user as u WHERE FIND_IN_SET(u.id, REPLACE(REPLACE((SELECT fu.attendees FROM tbl_followup as fu where fu.id = ${data[i].id}), '[', ''), ']', '')) > 0)`);
+      let query = await commonService.sqlJoinQuery(`(SELECT u.id , concat(u.first_name," ",u.last_name) as name, profile_img FROM tbl_user as u WHERE FIND_IN_SET(u.id, REPLACE(REPLACE(REPLACE((SELECT fu.attendees FROM tbl_followup AS fu WHERE fu.id = ${data[i].id}), ' ', ''), '[', ''), ']', '')) > 0)`);
       if (query.result.length > 0) {
         data[i].attendees = query.result;
       } else {
