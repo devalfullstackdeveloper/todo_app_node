@@ -1,6 +1,6 @@
 const { compareSync } = require("bcrypt");
 const commonService = require("../services/common.services");
-
+const moment = require("moment/moment");
 
 const showNotes = async (req, res) => {
   try {
@@ -47,8 +47,7 @@ const noteAdd = async (req, res) => {
   try {
     let payload = req.body;
     let notes_for = payload.notes_for;
-    let todayDate = new Date();
-    let todayDate1 = todayDate.toISOString().split('T')[0];
+    let todayDate1 = moment().format("YYYY-MM-DD hh:mm:ss").toString();
     let parameters;
     if (notes_for == 1 || notes_for == 2 || notes_for == 3) {
       parameters = {
@@ -141,16 +140,14 @@ const noteEdit = async (req, res) => {
   try {
     let id = req.params.id;
     let payload = req.body;
-    let todayDate = new Date()
-    let todayDate1 = todayDate.toISOString().split('T')[0]
+    let todayDate = moment().format("YYYY-MM-DD hh:mm:ss").toString();
     let parameters = "";
     if (req.body.note_description) { parameters += "note_description= '" + req.body.note_description + "'," }
     if (req.body.client_id) { parameters += "client_id= '" + req.body.client_id + "'," }
     if (req.body.user_id) { parameters += "user_id= '" + req.body.user_id + "'," }
     if (req.body.notes_for) { parameters += "notes_for= '" + req.body.notes_for + "'," }
     if (req.body.project_id) { parameters += "project_id= '" + req.body.project_id + "'," }
-    parameters += "  update_date = '" + todayDate1 + "' Where id = " + id + "";
-
+    parameters += "  update_date = '" + todayDate + "' Where id = " + id + "";
     let tblName = "tbl_notes";
 
     let parameters1 = "Count(id) As count";
