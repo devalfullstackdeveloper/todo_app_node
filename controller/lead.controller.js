@@ -697,7 +697,7 @@ const activityHistory = async (req, res) => {
       type4 += ` WHERE user_id = ${payload.user_id} AND client_id = ${payload.client_id} AND flag = 0 ORDER BY updated_at DESC `;
       type4res = await commonService.sqlJoinQuery(type4);
     }else if (type == 3) {
-      let query = ` WHERE user_id = ${payload.user_id} AND client_id = ${payload.client_id} AND project_id = ${payload.project_id} AND flag = 0`
+      let query = ` WHERE user_id = ${payload.user_id} AND client_id = ${payload.client_id} AND project_id = ${payload.project_id}`
       type1 += query + " ORDER BY updated_at DESC ";
       type2 += query + " ORDER BY updated_at DESC ";
       type3 += query + " ORDER BY update_date DESC ";
