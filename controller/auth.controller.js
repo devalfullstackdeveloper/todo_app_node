@@ -5,6 +5,8 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const multer = require("multer");
 const express = require("express");
+const nodemailer = require('nodemailer');
+const otpGenerator = require('otp-generator');
 const app = express();
 
 app.use("/profile", express.static("uploads"));
@@ -399,11 +401,138 @@ const deleteUser = async (req, res) => {
   }
 }
 
+function generateOTP() {
+  const digits = '0123456789';
+  let otp = '';
+  for (let i = 0; i < 6; i++) {
+    otp += digits[Math.floor(Math.random() * 10)];
+  }
+  return otp;
+}
+const sendOtp = async (req, res) => {
+  try {
+    const email = req.body.email;
+    const otp = generateOTP();
+    // Create a nodemailer transport object
+    const transporter = nodemailer.createTransport({
+      host: 'smtppro.zoho.in',
+      port: 465,
+      secure: true,
+      auth: {
+        user: 'app@itidoltechnologies.com', // replace with your Gmail email address
+        pass: 'hGVgm2putU37' // replace with your Gmail password
+      }
+    });
+    let tblName = "tbl_otp";
+    parameters = {
+      email: req.body.email,
+      otp: otp,
+  };
+  let queryResult = await commonService.sqlQueryWithParametrs(
+      tblName,
+      parameters
+  );
+    // Configure email options
+    const mailOptions = {
+      from: 'app@itidoltechnologies.com', // replace with your Gmail email address
+      to: email,
+      subject: 'OTP Verification',
+      text: `Your OTP is: ${otp}`
+    };
+    // Send the email
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        res.status(500).send({
+          status: 500,
+          message: "Something went wrong!",
+          error: error,
+        });
+      } else {
+        res.status(200).send({
+          status: 200,
+          message: "OTP sent successfully!",
+          // otp: otp
+        });
+      }
+    });
+  } catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+}
+function isWithinOneMinute1(date) {
+  const currentTime = new Date((moment().format("YYYY-MM-DD HH:mm:ss").toString().replace(" ","T")+".000Z"));
+  const differenceInMilliseconds = currentTime - date;
+  const differenceInSeconds = differenceInMilliseconds / 1000;
+  return differenceInSeconds <= 180;
+}
+
+const MatchOtp = async (req, res) => {
+  try {
+    const updated_at = moment().format("YYYY-MM-DD HH:mm:ss").toString();
+    const { email, otp } = req.body;
+    let query = `SELECT id, otp, created_date
+    FROM tbl_otp
+    WHERE email = '${email}' AND flag = 0 ORDER BY id DESC LIMIT 1`;
+    let getList = await commonService.sqlJoinQuery(query);
+    if(getList.result.length > 0){
+    const createdDate = new Date(moment(getList.result[0].created_date).format("YYYY-MM-DD HH:mm:ss").toString());
+    const isWithinOneMinute = isWithinOneMinute1(createdDate);
+    let tblName = "tbl_otp"
+    let parameters =
+      "updated_date = '" +
+      updated_at +
+      "', flag = 1 WHERE id = " +
+      getList.result[0].id;
+    if (isWithinOneMinute && (otp === getList.result[0].otp)) {
+      let queryResult = await commonService.sqlUpdateQueryWithParametrs(
+        tblName,
+        parameters
+      );
+      if (queryResult.success) {
+        res.status(200).send({
+          status: 200,
+          message: "OTP matched successfully!",
+        });
+      }else{
+        res.status(500).send({
+          status: 500,
+          message: "Something went wrong!",
+          error: e,
+        });
+      }
+    } else {
+      res.status(400).send({
+        status: 400,
+        message: "Invalid OTP",
+      });
+    }
+    
+  } else{
+    res.status(400).send({
+      status: 400,
+      message: "Invalid E-mail",
+    });
+  }
+}catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+}
+
 module.exports = {
   userRegistration,
   userLogin,
   resetPassword,
   editUser,
   userList,
-  deleteUser
+  deleteUser,
+  sendOtp,
+  MatchOtp
 };

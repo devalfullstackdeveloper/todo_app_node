@@ -17,5 +17,6 @@ router.post('/login', authController.userLogin);
 router.post('/edit_user/:id', verifyToken, authController.editUser);
 router.get('/user_list', verifyToken, authController.userList);
 router.post('/delete_user/:id', verifyToken, authController.deleteUser);
-
+router.post('/send-otp', verifyToken, authController.sendOtp);
+router.post('/match-otp', verifyToken, authController.MatchOtp);
 module.exports = router;
