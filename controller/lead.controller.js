@@ -46,6 +46,9 @@ const showlead = async (req, res) => {
       query = user_id ? `SELECT * FROM tbl_lead WHERE lead_status='Qualified' AND flag= 0 AND user_id = ${user_id}` : `SELECT * FROM tbl_lead WHERE lead_status='Qualified' AND flag= 0`;
     }
     else if (filtertype == 5) {
+      query = user_id ? `SELECT * FROM tbl_lead WHERE lead_status NOT IN ('Qualified', 'New') AND flag= 0 AND user_id = ${user_id}` : `SELECT * FROM tbl_lead WHERE lead_status NOT IN ('Qualified', 'New') AND flag = 0`;
+    }
+    else if (filtertype == 6) {
       query = user_id ? `SELECT * FROM tbl_lead WHERE favourite='Yes' AND flag= 0 AND user_id = ${user_id}` : `SELECT * FROM tbl_lead WHERE favourite='Yes' AND flag= 0`;
     }
     if (searchBy) {
@@ -170,7 +173,8 @@ const leadAdd = async (req, res) => {
       lead_source: payload.lead_source,
       referral: payload.referral,
       industry: payload.industry,
-      assigned_employee: payload.assigned_employee
+      assigned_employee: payload.assigned_employee,
+      meet_link:payload.meet_link
     };
     let tblName = "tbl_lead";
 
@@ -286,7 +290,9 @@ const leadEdit = async (req, res) => {
       req.body.industry +
       "' ,  assigned_employee = '" +
       req.body.assigned_employee +
-      "' ,  updated_at = '" +
+      "' ,  meet_link = '" +
+      req.body.meet_link +
+      "' updated_at = '" +
       updated_at +
       "' Where id = " +
       id +
@@ -520,7 +526,8 @@ const addFollowUp = async (req, res) => {
           link: payload.link,
           related_to: payload.related_to,
           attendees: payload.attendees,
-          outcomes: payload.outcomes
+          outcomes: payload.outcomes,
+          meet_link:payload.meet_link
         };
         let queryResult = await commonService.sqlQueryWithParametrs(
           tblName,
@@ -983,6 +990,7 @@ const updateFollowUp = async (req, res) => {
     if (req.body.related_to) { parameters += "  related_to = '" + req.body.related_to + "'," }
     if (req.body.attendees) { parameters += "  attendees = '" + req.body.attendees + "'," }
     if (req.body.outcomes) { parameters += "  outcomes = '" + req.body.outcomes + "'," }
+    if (req.body.meet_link) { parameters += "  meet_link = '" + req.body.meet_link + "'," }
     parameters += "  updated_at = '" + updated_at + "' Where id = " + id + "";
     let tblName = "tbl_followup";
     let parameters1 = "Count(id) As count";

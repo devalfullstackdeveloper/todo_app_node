@@ -6,6 +6,7 @@ router.post('/add_client_info', clientController.addClientInfo);
 router.post('/update_client_info/:id', clientController.updateClientInfo);
 router.post('/get_client_list', clientController.getClientList);
 router.get('/get_client_by_id/:id', clientController.getClientListById);
+router.get('/clientDelete/:id', clientController.clientDelete);
 router.post('/add_client_project', clientController.addClientProject);
 router.post('/update_client_project/:id', clientController.updateClientProject);
 router.post('/delete_client_project/:id', clientController.deleteClientProject);
