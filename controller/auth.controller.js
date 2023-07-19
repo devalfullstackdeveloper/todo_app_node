@@ -412,6 +412,11 @@ function generateOTP() {
 const sendOtp = async (req, res) => {
   try {
     const email = req.body.email;
+    let query = `SELECT email
+    FROM tbl_user
+    WHERE email = '${email}' AND flag = 0`;
+    let getList = await commonService.sqlJoinQuery(query);
+    if(getList.result.length > 0){
     const otp = generateOTP();
     // Create a nodemailer transport object
     const transporter = nodemailer.createTransport({
@@ -455,6 +460,12 @@ const sendOtp = async (req, res) => {
         });
       }
     });
+  }else{
+    res.status(400).send({
+      status: 400,
+      message: "Invalid E-mail"
+    });
+  }
   } catch (e) {
     res.status(500).send({
       status: 500,

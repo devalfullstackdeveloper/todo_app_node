@@ -61,7 +61,8 @@ const addClientInfo = async (req, res) => {
                     client_source: payload.client_source,
                     referral: payload.referral,
                     industry: payload.industry,
-                    description: payload.description
+                    description: payload.description,
+                    meet_link:payload.meet_link
                 };
                 let queryResult = await commonService.sqlQueryWithParametrs(
                     tblName,
@@ -114,6 +115,7 @@ const updateClientInfo = async (req, res) => {
         if (req.body.referral) { parameters += "  referral = '" + req.body.referral + "'," }
         if (req.body.industry) { parameters += "  industry = '" + req.body.industry + "'," }
         if (req.body.description) { parameters += "  description = '" + req.body.description + "'," }
+        if (req.body.meet_link) { parameters += "  meet_link = '" + req.body.meet_link + "'," }
         parameters += "  updated_at = '" + updated_at + "' Where id = " + id + "";
 
         let tblName = "tbl_client";
@@ -251,6 +253,43 @@ const getClientListById = async (req, res) => {
     }
 }
 
+//Deleting client
+const clientDelete = async (req, res) => {
+    try {
+        let id = req.params.id;
+        const updated_at = moment().format("YYYY-MM-DD hh:mm:ss").toString();
+        let parameters =
+            "flag = 1" + " ,  updated_at = '" +
+            updated_at +
+            "' Where id = " +
+            id +
+            "";
+        let tblName = "tbl_client";
+        let queryResult = await commonService.sqlUpdateQueryWithParametrs(
+            tblName,
+            parameters
+        );
+        if (queryResult.success) {
+            res.status(200).send({
+                status: 200,
+                message: "Deleted Record Successfully",
+            });
+        } else {
+            res.status(500).send({
+                status: 500,
+                message: "Something went wrong2!",
+                error: queryResult.error,
+            });
+        }
+    } catch (e) {
+        res.status(500).send({
+            status: 500,
+            message: "Something went wrong1!",
+            error: e,
+        });
+    }
+};
+
 const addClientProject = async (req, res) => {
     try {
         const payload = req.body;
@@ -304,7 +343,8 @@ const addClientProject = async (req, res) => {
                     month_rate: payload.month_rate,
                     project_status: payload.project_status,
                     related_to: payload.related_to,
-                    description: payload.description
+                    description: payload.description,
+                    meet_link:payload.meet_link
                 };
                 let queryResult = await commonService.sqlQueryWithParametrs(
                     tblName,
@@ -349,6 +389,7 @@ const updateClientProject = async (req, res) => {
         if (req.body.project_status) { parameters += "   project_status = '" + req.body.project_status + "'," }
         if (req.body.related_to) { parameters += "   related_to = '" + req.body.related_to + "'," }
         if (req.body.description) { parameters += "   description = '" + req.body.description + "'," }
+        if (req.body.meet_link) { parameters += "   meet_link = '" + req.body.meet_link + "'," }
         parameters += "  updated_at = '" + updated_at + "' Where id = " + id + "";
 
         let tblName = "tbl_project";
@@ -580,6 +621,7 @@ module.exports = {
     updateClientInfo,
     getClientList,
     getClientListById,
+    clientDelete,
     addClientProject,
     updateClientProject,
     deleteClientProject,
