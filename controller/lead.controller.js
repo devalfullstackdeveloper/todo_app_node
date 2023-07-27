@@ -590,9 +590,9 @@ const followUpList = async (req, res) => {
   try {
     let sort = req.params.type;
     let payload = req.body;
-    let type = 1;
+    let type = 4;
     let query = `SELECT f.* FROM tbl_followup as f `;
-    if(payload.user_id){ 
+    if (payload.user_id) {
       type = 3;
     }
     if (payload.user_id && payload.lead_id) {
@@ -600,11 +600,11 @@ const followUpList = async (req, res) => {
     } else if (payload.user_id && payload.client_id && payload.project_id) {
       type = 2;
     }
-    if (payload.user_id) { query += "WHERE f.flag = 0 AND f.user_id=" + payload.user_id  } else { query += "WHERE f.flag = 0 AND " }
-    if (payload.lead_id) { query += " AND f.lead_id=" + payload.lead_id + " AND " }
+    if (payload.user_id) { query += "WHERE f.flag = 0 AND f.user_id=" + payload.user_id } else { query += "WHERE f.flag = 0  " }
+    if (payload.lead_id) { query += " AND f.lead_id=" + payload.lead_id }
     if (payload.client_id) { query += " AND f.client_id=" + payload.client_id + " AND " }
-    if (payload.project_id) { query += " f.project_id=" + payload.project_id + " AND " }
-    if(type == 1 || type == 2){ query += "f.followup_for=" + type} else { query += "" }
+    if (payload.project_id) { query += " f.project_id=" + payload.project_id }
+    if (type == 1 || type == 2) { query += " AND f.followup_for=" + type } else { query += "" }
     if (sort == 1 || sort == 2 || sort == 3 || sort == 4) {
       query += " AND "
     }
@@ -630,10 +630,17 @@ const followUpList = async (req, res) => {
         relate += `SELECT  concat(c.first_name," ",c.last_name) as name, profile_img FROM tbl_client as c WHERE c.id = ${data[i].related_to}  AND c.flag = 0`;
         // relate1 += `SELECT id, name from tbl_project where user_id=${data[i].user_id} AND client_id=${data[i].client_id} AND id = ${data[i].project_id} AND flag = 0`
       }
-      else if(type && type == 3){
-        if(data[i].lead_id != ""){
+      else if (type && type == 3) {
+        if (data[i].lead_id != "") {
           relate += `SELECT id, concat(first_name," ",last_name) as name, profile_img  FROM tbl_lead WHERE id = ${data[i].related_to} AND flag = 0`;
-        }else{
+        } else {
+          relate += `SELECT  concat(c.first_name," ",c.last_name) as name, profile_img FROM tbl_client as c WHERE c.id = ${data[i].related_to}  AND c.flag = 0`;
+        }
+      }
+      else {
+        if (data[i].lead_id != "") {
+          relate += `SELECT id, concat(first_name," ",last_name) as name, profile_img  FROM tbl_lead WHERE id = ${data[i].related_to} AND flag = 0`;
+        } else {
           relate += `SELECT  concat(c.first_name," ",c.last_name) as name, profile_img FROM tbl_client as c WHERE c.id = ${data[i].related_to}  AND c.flag = 0`;
         }
       }
