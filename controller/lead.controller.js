@@ -90,8 +90,12 @@ const showlead = async (req, res) => {
     }
 
     let startPage = (pageNo * pageLength) - pageLength;
-
-    query = startPage ? `${query} LIMIT ${startPage},${pageLength}`:query;
+    // query = startPage > 0 ? `${query} LIMIT ${startPage},${pageLength}`:query;
+    if (pageNo && pageLength) {
+      query = `${query} LIMIT ${startPage},${pageLength}`
+    } else {
+      query
+    }
     let queryResult = await commonService.sqlJoinQuery(query);
 
     let leadslist1 = [];
@@ -292,7 +296,7 @@ const leadEdit = async (req, res) => {
       req.body.assigned_employee +
       "' ,  meet_link = '" +
       req.body.meet_link +
-      "' updated_at = '" +
+      "', updated_at = '" +
       updated_at +
       "' Where id = " +
       id +
@@ -718,7 +722,7 @@ const activityHistory = async (req, res) => {
     let type4 = `select * from tbl_project`
     let user = `select * from tbl_user where id = ${payload.user_id} and flag = 0`;
     if (type == 1) {
-      let query = ` WHERE user_id = ${payload.user_id} AND lead_id = ${payload.lead_id} AND flag = 0`
+      let query = ` WHERE user_id = ${payload.user_id} AND lead_id = ${payload.lead_id}`
       type1 += query + " ORDER BY updated_at DESC ";
       type2 += query + " ORDER BY updated_at DESC ";
       type3 += query + " ORDER BY update_date DESC ";
@@ -726,7 +730,7 @@ const activityHistory = async (req, res) => {
       type2res = await commonService.sqlJoinQuery(type2);
       type3res = await commonService.sqlJoinQuery(type3);
     } else if (type == 2) {
-      type4 += ` WHERE user_id = ${payload.user_id} AND client_id = ${payload.client_id} AND flag = 0 ORDER BY updated_at DESC `;
+      type4 += ` WHERE user_id = ${payload.user_id} AND client_id = ${payload.client_id} ORDER BY updated_at DESC `;
       type4res = await commonService.sqlJoinQuery(type4);
     }else if (type == 3) {
       let query = ` WHERE user_id = ${payload.user_id} AND client_id = ${payload.client_id} AND project_id = ${payload.project_id}`

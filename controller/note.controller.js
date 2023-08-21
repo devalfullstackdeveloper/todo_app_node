@@ -220,17 +220,14 @@ const noteEdit = async (req, res) => {
 //Deleting note
 const noteDelete = async (req, res) => {
   try {
-
+    let todayDate = moment().format("YYYY-MM-DD hh:mm:ss").toString();
     let id = req.params.id;
-
     let parameters =
-      "flag = 1" +
-      " Where id = " +
-      id +
-      "";
-
+      "flag = 1," +
+      " update_date = '" + todayDate +
+      "' Where id = " +
+      id
     let tblName = "tbl_notes";
-
     let queryResult = await commonService.sqlUpdateQueryWithParametrs(
       tblName,
       parameters
@@ -247,11 +244,10 @@ const noteDelete = async (req, res) => {
         error: queryResult.error,
       });
     }
-
   } catch (e) {
     res.status(500).send({
       status: 500,
-      message: "Something went wrong1!",
+      message: "Something went wrong!",
       error: e,
     });
   }
