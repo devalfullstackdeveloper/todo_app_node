@@ -159,7 +159,7 @@ const userLogin = async (req, res) => {
           if (queryResult2.success && queryResult2.result.length > 0) {
             let parameters2 = `flag = 1, updated_at = "${updated_at}" Where token = "${req.body.fcm_token}"`;
             let condition3 = "token = '" + req.body.fcm_token + "'";
-            let queryResult2 = await commonService.sqlUpdateQueryWithParametrs(
+            await commonService.sqlUpdateQueryWithParametrs(
               tblName2,
               parameters2,
               condition3
@@ -169,12 +169,12 @@ const userLogin = async (req, res) => {
             let tblName1 = "tbl_notification";
 
             let parameters1 = {
-              emp_id: queryResult.result[0].id,
+              user_id: queryResult.result[0].id,
               token: payload.fcm_token,
               flag: 1,
               updated_at: updated_at
             }
-            let queryResult1 = await commonService.sqlQueryWithParametrs(
+            await commonService.sqlQueryWithParametrs(
               tblName1,
               parameters1
             );
