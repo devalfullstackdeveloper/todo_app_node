@@ -47,7 +47,7 @@ const noteAdd = async (req, res) => {
   try {
     let payload = req.body;
     let notes_for = payload.notes_for;
-    let todayDate1 = moment().format("YYYY-MM-DD hh:mm:ss").toString();
+    let todayDate1 = moment().format("YYYY-MM-DD HH:mm:ss").toString();
     let parameters;
     if (notes_for == 1 || notes_for == 2 || notes_for == 3) {
       parameters = {
@@ -140,7 +140,7 @@ const noteEdit = async (req, res) => {
   try {
     let id = req.params.id;
     let payload = req.body;
-    let todayDate = moment().format("YYYY-MM-DD hh:mm:ss").toString();
+    let todayDate = moment().format("YYYY-MM-DD HH:mm:ss").toString();
     let parameters = "";
     if (req.body.note_description) { parameters += "note_description= '" + req.body.note_description + "'," }
     if (req.body.client_id) { parameters += "client_id= '" + req.body.client_id + "'," }
@@ -220,7 +220,7 @@ const noteEdit = async (req, res) => {
 //Deleting note
 const noteDelete = async (req, res) => {
   try {
-    let todayDate = moment().format("YYYY-MM-DD hh:mm:ss").toString();
+    let todayDate = moment().format("YYYY-MM-DD HH:mm:ss").toString();
     let id = req.params.id;
     let parameters =
       "flag = 1," +
