@@ -215,19 +215,19 @@ const userlogout = async (req, res) => {
   try {
     let todayDate = moment().format("YYYY-MM-DD HH:mm:ss").toString();
     let id = req.params.id;
-    let queryResult1 = await commonService.sqlJoinQuery(`select user_id from tbl_notification where user_id = ${id}`);
+    let queryResult1 = await commonService.sqlJoinQuery(`select user_id from tbl_notification where user_id = ${id} AND flag = 1`);
     if (queryResult1.result.length !== 0) {
       let parameters =
         "flag = 0," +
         " updated_at = '" + todayDate +
         "' Where user_id = " +
-        id
+        id;
       let tblName = "tbl_notification";
       let queryResult = await commonService.sqlUpdateQueryWithParametrs(
         tblName,
         parameters
-      );     
-      if (queryResult.success) {
+        );  
+      if (queryResult.result.affectedRows > 0) {
         res.status(200).send({
           status: 200,
           message: "User Logout Successfully",
@@ -236,14 +236,12 @@ const userlogout = async (req, res) => {
         res.status(500).send({
           status: 500,
           message: "record not found!",
-          error: queryResult.error,
         });
       }
     } else {
       res.status(500).send({
         status: 500,
-        message: "record not found!",
-        error: queryResult1.error,
+        message: "record not found!!",
       });
     }
   } catch (e) {
