@@ -108,9 +108,11 @@ const userRegistration = async (req, res) => {
 };
 const userLogin = async (req, res) => {
   try {
+    const updated_at = moment().format("YYYY-MM-DD HH:mm:ss").toString();
     let validationRule = {
       email: "required|email",
       password: "required|string|min:8|max:8|passwordRegx",
+      fcm_token: "required"
     };
     let isvalidated = await commonService.validateRequest(
       req.body,
@@ -146,6 +148,37 @@ const userLogin = async (req, res) => {
             },
             process.env.secret
           );
+          let tblName2 = "tbl_notification";
+          let parameters2 = "*";
+          let condition2 = "token = '" + req.body.fcm_token + "'";
+          let queryResult2 = await commonService.sqlSelectQueryWithParametrs(
+            tblName2,
+            parameters2,
+            condition2
+          );
+          if (queryResult2.success && queryResult2.result.length > 0) {
+            let parameters2 = `flag = 1, updated_at = "${updated_at}" Where token = "${req.body.fcm_token}"`;
+            let condition3 = "token = '" + req.body.fcm_token + "'";
+            let queryResult2 = await commonService.sqlUpdateQueryWithParametrs(
+              tblName2,
+              parameters2,
+              condition3
+            );
+          } else {
+            let payload = req.body;
+            let tblName1 = "tbl_notification";
+
+            let parameters1 = {
+              emp_id: queryResult.result[0].id,
+              token: payload.fcm_token,
+              flag: 1,
+              updated_at: updated_at
+            }
+            let queryResult1 = await commonService.sqlQueryWithParametrs(
+              tblName1,
+              parameters1
+            );
+          }
           res.status(200).send({
             status: 200,
             message: "Login Successfully",
@@ -176,6 +209,51 @@ const userLogin = async (req, res) => {
   }
 };
 
+
+//user logout
+const userlogout = async (req, res) => {
+  try {
+    let todayDate = moment().format("YYYY-MM-DD HH:mm:ss").toString();
+    let id = req.params.id;
+    let queryResult1 = await commonService.sqlJoinQuery(`select user_id from tbl_notification where user_id = ${id}`);
+    if (queryResult1.result.length !== 0) {
+      let parameters =
+        "flag = 0," +
+        " updated_at = '" + todayDate +
+        "' Where user_id = " +
+        id
+      let tblName = "tbl_notification";
+      let queryResult = await commonService.sqlUpdateQueryWithParametrs(
+        tblName,
+        parameters
+      );     
+      if (queryResult.success) {
+        res.status(200).send({
+          status: 200,
+          message: "User Logout Successfully",
+        });
+      } else {
+        res.status(500).send({
+          status: 500,
+          message: "record not found!",
+          error: queryResult.error,
+        });
+      }
+    } else {
+      res.status(500).send({
+        status: 500,
+        message: "record not found!",
+        error: queryResult1.error,
+      });
+    }
+  } catch (e) {
+    res.status(500).send({
+      status: 500,
+      message: "Something went wrong!",
+      error: e,
+    });
+  }
+};
 
 const resetPassword = async (req, res) => {
   try {
@@ -540,6 +618,7 @@ const MatchOtp = async (req, res) => {
 module.exports = {
   userRegistration,
   userLogin,
+  userlogout,
   resetPassword,
   editUser,
   userList,

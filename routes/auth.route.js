@@ -14,6 +14,7 @@ router.get('/health-check', (req, res) => {
 router.post('/register', authController.userRegistration);
 router.post('/resetPass', authController.resetPassword);
 router.post('/login', authController.userLogin);
+router.post('/logout/:id', authController.userlogout);
 router.post('/edit_user/:id', verifyToken, authController.editUser);
 router.get('/user_list', verifyToken, authController.userList);
 router.post('/delete_user/:id', verifyToken, authController.deleteUser);
