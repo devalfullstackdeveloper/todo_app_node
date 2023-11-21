@@ -178,7 +178,7 @@ const leadAdd = async (req, res) => {
       referral: payload.referral,
       industry: payload.industry,
       assigned_employee: payload.assigned_employee,
-      meet_link:payload.meet_link
+      meet_link: payload.meet_link
     };
     let tblName = "tbl_lead";
 
@@ -531,7 +531,7 @@ const addFollowUp = async (req, res) => {
           related_to: payload.related_to,
           attendees: payload.attendees,
           outcomes: payload.outcomes,
-          meet_link:payload.meet_link
+          meet_link: payload.meet_link
         };
         let queryResult = await commonService.sqlQueryWithParametrs(
           tblName,
@@ -592,6 +592,7 @@ const followUpListBy_lead = async (req, res) => {
 
 const followUpList = async (req, res) => {
   try {
+    let sortdate = req.headers.selecteddate;
     let sort = req.params.type;
     let payload = req.body;
     let type = 4;
@@ -613,6 +614,7 @@ const followUpList = async (req, res) => {
       query += " AND "
     }
     let date = moment().format('YYYY-MM-DD');
+    if (sortdate != null) { date = sortdate }
     if (sort == 1) {
       query += `  Date(remainder)='${date}'`;
     } else if (sort == 2) {
@@ -732,7 +734,7 @@ const activityHistory = async (req, res) => {
     } else if (type == 2) {
       type4 += ` WHERE user_id = ${payload.user_id} AND client_id = ${payload.client_id} ORDER BY updated_at DESC `;
       type4res = await commonService.sqlJoinQuery(type4);
-    }else if (type == 3) {
+    } else if (type == 3) {
       let query = ` WHERE user_id = ${payload.user_id} AND client_id = ${payload.client_id} AND project_id = ${payload.project_id}`
       type1 += query + " ORDER BY updated_at DESC ";
       type2 += query + " ORDER BY updated_at DESC ";
@@ -935,7 +937,7 @@ const lead_project = async (req, res) => {
       } else {
         m = item1.Date.split('-')[1];
       }
-      item1.Date = item1.Date.split('-')[0] +"-"+ m +"-"+ item1.Date.split('-')[2];
+      item1.Date = item1.Date.split('-')[0] + "-" + m + "-" + item1.Date.split('-')[2];
     })
     Month.map(item => {
       query.result.map(item1 => {
