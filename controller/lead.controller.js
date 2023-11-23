@@ -178,7 +178,13 @@ const leadAdd = async (req, res) => {
       referral: payload.referral,
       industry: payload.industry,
       assigned_employee: payload.assigned_employee,
-      meet_link: payload.meet_link
+      meet_link:payload.meet_link,
+      role: payload.role,
+      poc_linkedin: payload.poc_linkedin,
+      company_linkedin: payload.company_linkedin,
+      no_emps: payload.no_emps,
+      notes: payload.notes,
+      address: payload.address
     };
     let tblName = "tbl_lead";
 
@@ -296,6 +302,18 @@ const leadEdit = async (req, res) => {
       req.body.assigned_employee +
       "' ,  meet_link = '" +
       req.body.meet_link +
+      "', role = '" +
+      req.body.role +
+      "', poc_linkedin = '" +
+      req.body.poc_linkedin +
+      "', company_linkedin = '" +
+      req.body.company_linkedin +
+      "', no_emps = '" +
+      req.body.no_emps +
+      "', notes = '" +
+      req.body.notes +
+      "', address = '" +
+      req.body.address +
       "', updated_at = '" +
       updated_at +
       "' Where id = " +
