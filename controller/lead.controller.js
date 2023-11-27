@@ -173,6 +173,7 @@ const leadAdd = async (req, res) => {
       city: payload.city,
       zipcode: payload.zipcode,
       country: payload.country,
+      country_code: payload.country_code,
       website: payload.website,
       lead_source: payload.lead_source,
       referral: payload.referral,
@@ -290,7 +291,9 @@ const leadEdit = async (req, res) => {
       req.body.zipcode +
       "' ,  country = '" +
       req.body.country +
-      "' ,  website = '" +
+      "' , country_code = '" +
+      req.body.country_code +
+      "' , website = '" +
       req.body.website +
       "' ,  lead_source = '" +
       req.body.lead_source +
