@@ -168,17 +168,19 @@ const leadAdd = async (req, res) => {
       lead_status: payload.lead_status,
       phone_number: payload.phone_number,
       email: payload.email,
+      secondary_email: payload.secondaryemail,
       priority: payload.priority,
       street: payload.street,
       city: payload.city,
       zipcode: payload.zipcode,
       country: payload.country,
+      country_code: payload.country_code,
       website: payload.website,
       lead_source: payload.lead_source,
       referral: payload.referral,
       industry: payload.industry,
       assigned_employee: payload.assigned_employee,
-      meet_link:payload.meet_link,
+      meet_link: payload.meet_link,
       role: payload.role,
       poc_linkedin: payload.poc_linkedin,
       company_linkedin: payload.company_linkedin,
@@ -280,7 +282,9 @@ const leadEdit = async (req, res) => {
       req.body.phone_number +
       "' ,  email = '" +
       req.body.email +
-      "' ,  priority = '" +
+      "' , secondary_email = '" +
+      req.body.secondaryemail +
+      "' , priority = '" +
       req.body.priority +
       "' ,  street = '" +
       req.body.street +
@@ -290,7 +294,9 @@ const leadEdit = async (req, res) => {
       req.body.zipcode +
       "' ,  country = '" +
       req.body.country +
-      "' ,  website = '" +
+      "' , country_code = '" +
+      req.body.country_code +
+      "' , website = '" +
       req.body.website +
       "' ,  lead_source = '" +
       req.body.lead_source +
