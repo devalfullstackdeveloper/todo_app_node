@@ -543,7 +543,7 @@ const addFollowUp = async (req, res) => {
           },
         });
       } else {
-        let paratameters = {
+        let parameters = {
           user_id: payload.user_id,
           lead_id: payload.lead_id,
           client_id: payload.client_id,
@@ -555,16 +555,20 @@ const addFollowUp = async (req, res) => {
           related_to: payload.related_to,
           attendees: payload.attendees,
           outcomes: payload.outcomes,
-          meet_link: payload.meet_link
+          meet_link: payload.meet_link,
+          title: payload.title,
+          follow_up_date: payload.follow_up_date,
+          start_time: payload.start_time,
+          end_time: payload.end_time
         };
         let queryResult = await commonService.sqlQueryWithParametrs(
           tblName,
-          paratameters
+          parameters
         );
         if (queryResult.success) {
           res.status(200).send({
             status: 200,
-            message: "Follow Up successfully Added",
+            message: "Follow Up Successfully Added",
           });
         } else {
           res.status(500).send({
@@ -1046,6 +1050,10 @@ const updateFollowUp = async (req, res) => {
     if (req.body.attendees) { parameters += "  attendees = '" + req.body.attendees + "'," }
     if (req.body.outcomes) { parameters += "  outcomes = '" + req.body.outcomes + "'," }
     if (req.body.meet_link) { parameters += "  meet_link = '" + req.body.meet_link + "'," }
+    if (req.body.title) { parameters += "  title = '" + req.body.title + "'," }
+    if (req.body.follow_up_date) { parameters += "  follow_up_date = '" + req.body.follow_up_date + "'," }
+    if (req.body.start_time) { parameters += "  start_time = '" + req.body.start_time + "'," }
+    if (req.body.end_time) { parameters += "  end_time = '" + req.body.end_time + "'," }
     parameters += "  updated_at = '" + updated_at + "' Where id = " + id + "";
     let tblName = "tbl_followup";
     let parameters1 = "Count(id) As count";
