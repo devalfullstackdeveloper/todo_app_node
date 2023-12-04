@@ -659,21 +659,21 @@ const followUpList = async (req, res) => {
       let relate = "";
       let relate1 = "";
       if (type && type == 1) {
-        relate += `SELECT id, concat(first_name," ",last_name) as name, profile_img  FROM tbl_lead WHERE id = ${data[i].related_to} AND flag = 0`;
+        relate += `SELECT id, concat(first_name," ",last_name) as name, profile_img, phone_number, country_code FROM tbl_lead WHERE id = ${data[i].related_to} AND flag = 0`;
       } else if (type && type == 2) {
         relate += `SELECT  concat(c.first_name," ",c.last_name) as name, profile_img FROM tbl_client as c WHERE c.id = ${data[i].related_to}  AND c.flag = 0`;
         // relate1 += `SELECT id, name from tbl_project where user_id=${data[i].user_id} AND client_id=${data[i].client_id} AND id = ${data[i].project_id} AND flag = 0`
       }
       else if (type && type == 3) {
         if (data[i].lead_id != "") {
-          relate += `SELECT id, concat(first_name," ",last_name) as name, profile_img  FROM tbl_lead WHERE id = ${data[i].related_to} AND flag = 0`;
+          relate += `SELECT id, concat(first_name," ",last_name) as name, profile_img, phone_number, country_code FROM tbl_lead WHERE id = ${data[i].related_to} AND flag = 0`;
         } else {
           relate += `SELECT  concat(c.first_name," ",c.last_name) as name, profile_img FROM tbl_client as c WHERE c.id = ${data[i].related_to}  AND c.flag = 0`;
         }
       }
       else {
         if (data[i].lead_id != "") {
-          relate += `SELECT id, concat(first_name," ",last_name) as name, profile_img  FROM tbl_lead WHERE id = ${data[i].related_to} AND flag = 0`;
+          relate += `SELECT id, concat(first_name," ",last_name) as name, profile_img, phone_number, country_code, FROM tbl_lead WHERE id = ${data[i].related_to} AND flag = 0`;
         } else {
           relate += `SELECT  concat(c.first_name," ",c.last_name) as name, profile_img FROM tbl_client as c WHERE c.id = ${data[i].related_to}  AND c.flag = 0`;
         }
